@@ -588,6 +588,17 @@
                 font-size: 0.9rem;
                 color: #2d3748;
             }
+
+            #searchBox {
+                width: 60%;
+                margin-top: 10px;
+                padding: 10px;
+                box-sizing: border-box;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                font-size: 14px;
+                z-index: 100;
+            }
         </style>
     </head>
 
@@ -601,7 +612,8 @@
             <div id="right-sidebar"></div><button id="toggle-right-sidebar" class="toggle-sidebar">→</button> <button
                 id="scroll-to-top" title="Scroll to top">↑↑</button>
         </div>
-        <script>let map;
+        <script>
+            let map;
             let polygons = [];
             let markers = []; // Array to store markers
             let activeMarker = null; // Track currently highlighted marker
@@ -633,6 +645,23 @@
                 activeMarker = marker;
             }
 
+            function createSearchBox() {
+                const searchContainer = document.createElement('div');
+                searchContainer.style.position = 'relative';
+                searchContainer.style.margin = '10px';
+                searchContainer.style.width = '300px';
+
+                const input = document.createElement('input');
+                input.id = 'searchBox';
+                input.type = 'text';
+                input.placeholder = 'Enter location...';
+
+                searchContainer.appendChild(input);
+                document.body.append(searchContainer);
+
+                return input;
+            }
+
             // Function to get marker color based on parcel type
             function getMarkerColor(type) {
                 switch (type) {
@@ -655,15 +684,12 @@
                 });
 
                 // Create the search box
-                const input = document.getElementById("searchBox");
+
+                // Create and add the search box
+                const input = createSearchBox();
                 const searchBox = new google.maps.places.Autocomplete(input);
+                map.controls[google.maps.ControlPosition.TOP_CENTER].push(input);
 
-                // Bias searchBox results towards current map's viewport
-                map.addListener("bounds_changed", () => {
-                    searchBox.setBounds(map.getBounds());
-                });
-
-                // Listen for the event fired when the user selects a prediction
                 searchBox.addListener("place_changed", () => {
                     const place = searchBox.getPlace();
 
