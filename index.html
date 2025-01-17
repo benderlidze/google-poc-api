@@ -446,7 +446,7 @@
         transition: all 0.3s ease;
       }
 
-      .parcel-card.highlighted {
+      .highlighted {
         background: #e3f2fd;
         box-shadow: 0 4px 8px rgba(33, 150, 243, 0.2);
         transform: translateY(-2px);
@@ -609,6 +609,11 @@
           this.polygons = [];
           this.markers = [];
           this.activeMarker = null;
+
+          // Ensure the DOM and Google Maps API are ready
+          window.onload = () => {
+            this.initMap();
+          };
         }
 
         initMap() {
@@ -646,16 +651,16 @@
         handlePolygonClick(polygon) {
           this.polygons.forEach(p => p.setOptions({ fillColor: '#2196F3', fillOpacity: 0.3 }));
           polygon.setOptions({ fillColor: '#4CAF50', fillOpacity: 0.5 });
+          this.eventBus.emit('polygonClicked', { polygon });
 
-          fetch(`https://api.rainplan.com/api:IME/incentive_by_esri_id?esri_id=${polygon.esri_id}`)
-            .then(response => response.json())
-            .then(incentives => {
-              this.eventBus.emit('polygonClicked', { esri_id: polygon.esri_id, incentives, name: polygon.name });
-            });
+          // fetch(`https://api.rainplan.com/api:IME/incentive_by_esri_id?esri_id=${polygon.esri_id}`)
+          //   .then(response => response.json())
+          //   .then(incentives => {
+          //   });
 
-          fetch(`https://api.rainplan.com/api:IME/jurisdiction_parcels_geojson?esri_id=${polygon.esri_id}`)
-            .then(response => response.json())
-            .then(parcelsData => this.loadParcels(parcelsData));
+          // fetch(`https://api.rainplan.com/api:IME/jurisdiction_parcels_geojson?esri_id=${polygon.esri_id}`)
+          //   .then(response => response.json())
+          //   .then(parcelsData => this.loadParcels(parcelsData));
         }
 
         loadParcels(parcelsData) {
@@ -784,13 +789,13 @@
             const card = document.createElement('div');
             card.className = 'card';
             card.innerHTML = `
-        ${incentive.logo_url ? `<img src="${incentive.logo_url}" alt="${incentive.name} logo">` : ''}
-        <h3>${incentive.name}</h3>
-        <p>${incentive.summary}</p>
-        ${incentive.min_payout ? `<p>Min payout: ${incentive.min_payout}</p>` : ''}
-        ${incentive.max_payout ? `<p>Max payout: ${incentive.max_payout}</p>` : ''}
-        <a href="${incentive.link}" target="_blank">Learn More</a>
-      `;
+              ${incentive.logo_url ? `<img src="${incentive.logo_url}" alt="${incentive.name} logo">` : ''}
+              <h3>${incentive.name}</h3>
+              <p>${incentive.summary}</p>
+              ${incentive.min_payout ? `<p>Min payout: ${incentive.min_payout}</p>` : ''}
+              ${incentive.max_payout ? `<p>Max payout: ${incentive.max_payout}</p>` : ''}
+              <a href="${incentive.link}" target="_blank">Learn More</a>
+            `;
             this.leftSidebar.appendChild(card);
           });
         }
@@ -894,7 +899,7 @@
         highlightParcelCard(parcelId) {
           const cards = document.querySelectorAll('.parcel-card');
           cards.forEach(card => {
-            if (card.dataset.parcelId === parcelId) {
+            if (+card.dataset.parcelId === +parcelId) {
               card.classList.add('highlighted');
               card.scrollIntoView({ behavior: 'smooth', block: 'center' });
             } else {
@@ -921,21 +926,40 @@
       function initMap() {
         const eventBus = new EventBus();
 
-        const map = new GMap(eventBus);
-        map.initMap();
-
+        const mapObj = new GMap(eventBus);
         const ui = new UI(eventBus);
 
         eventBus.on('polygonClicked', data => {
-          ui.displayIncentives(data.incentives);
-          ui.displayParcels(data.parcelsData, data.name);
+          console.log('eventBus polygonClicked', data);
+
+          const { esri_id } = data.polygon;
+
+          //load new data
+          fetch(`https://api.rainplan.com/api:IME/incentive_by_esri_id?esri_id=${esri_id}`)
+            .then(response => response.json())
+            .then(incentives => {
+              ui.displayIncentives(data.incentives);
+            });
+
+          fetch(`https://api.rainplan.com/api:IME/jurisdiction_parcels_geojson?esri_id=${esri_id}`)
+            .then(response => response.json())
+            .then(parcelsData => {
+              console.log('parcelsData', parcelsData);
+              // m.loadParcels(parcelsData)
+              mapObj.loadParcels(parcelsData);
+              ui.displayParcels(parcelsData, data.name);
+            });
+
+
         });
 
         eventBus.on('parcelCardClicked', data => {
+          console.log('eventBus parcelCardClicked', data);
           eventBus.emit('markerClicked', { parcelId: data.parcelId });
         });
 
         eventBus.on('markerClicked', data => {
+          console.log('eventBus markerClicked', data);
           ui.highlightParcelCard(data.parcelId);
         });
       }
