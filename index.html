@@ -616,6 +616,7 @@
             let map;
             let polygons = [];
             let markers = []; // Array to store markers
+            let parcels = []; // Array to store parcels
             let activeMarker = null; // Track currently highlighted marker
 
             function highlightMarker(marker) {
@@ -676,6 +677,12 @@
                 }
             }
 
+            function filterVisibleMarkers(map, markers) {
+                const bounds = map.getBounds();
+                return markers.filter(marker => bounds.contains(marker.getPosition()))
+            }
+
+
             async function initMap() {
                 map = new google.maps.Map(document.getElementById("map"), {
                     zoom: 4,
@@ -706,6 +713,14 @@
                     }
                 });
 
+
+
+                map.addListener('bounds_changed', () => {
+                    const visibleMarkers = filterVisibleMarkers(map, markers);
+                    const visibleMarkersId = visibleMarkers.map(marker => marker.parcelId);
+
+                    // displayParcels({ parcels, filter: visibleMarkersId });
+                });
 
 
                 // Load and display GeoJSON polygons
@@ -767,6 +782,8 @@
                         const parcelsResponse = await fetch(`https://api.rainplan.com/api:IME/jurisdiction_parcels_geojson?esri_id=${polygon.esri_id}`);
                         const parcelsData = await parcelsResponse.json();
 
+                        parcels = parcelsData;
+
                         // Display parcel cards in right sidebar
                         displayParcels(parcelsData);
 
@@ -789,7 +806,7 @@
                                     strokeColor: '#FFFFFF',
                                     strokeOpacity: 0.7,
                                     scale: 7
-                                }
+                                },
                             });
 
                             // Add click listener to marker
@@ -847,15 +864,14 @@
                 incentives.forEach(incentive => {
                     const card = document.createElement('div');
                     card.className = 'card';
-
                     card.innerHTML = `
-              ${incentive.logo_url ? `<img src="${incentive.logo_url}" alt="${incentive.name} logo">` : ''}
-              <h3>${incentive.name}</h3>
-              <p>${incentive.summary}</p>
-              ${incentive.min_payout ? `<p>Min payout: ${incentive.min_payout}</p>` : ''}
-              ${incentive.max_payout ? `<p>Max payout: ${incentive.max_payout}</p>` : ''}
-              <a href="${incentive.link}" target="_blank">Learn More</a>
-            `;
+                        ${incentive.logo_url ? `<img src="${incentive.logo_url}" alt="${incentive.name} logo">` : ''}
+                        <h3>${incentive.name}</h3>
+                        <p>${incentive.summary}</p>
+                        ${incentive.min_payout ? `<p>Min payout: ${incentive.min_payout}</p>` : ''}
+                        ${incentive.max_payout ? `<p>Max payout: ${incentive.max_payout}</p>` : ''}
+                        <a href="${incentive.link}" target="_blank">Learn More</a>
+                        `;
 
                     leftSidebar.appendChild(card);
                 });
@@ -878,132 +894,134 @@
                 });
             }
 
-            function displayParcels(parcels) {
-                const rightSidebar = document.getElementById('right-sidebar');
-                rightSidebar.innerHTML = '';
+            // function displayParcels(parcels) {
+            //     console.log('parcels', parcels);
 
-                // Add filter section
-                const filterSection = document.createElement('div');
-                filterSection.className = 'filter-section';
-                filterSection.innerHTML = '<h3>Filter Parcels</h3>';
+            //     const rightSidebar = document.getElementById('right-sidebar');
+            //     rightSidebar.innerHTML = '';
 
-                // Count parcels by type
-                const parcelCounts = {
-                    searched: 0,
-                    engaged: 0,
-                    claimed: 0
-                };
+            //     // Add filter section
+            //     const filterSection = document.createElement('div');
+            //     filterSection.className = 'filter-section';
+            //     filterSection.innerHTML = '<h3>Filter Parcels</h3>';
 
-                parcels.feature_parcels.features.forEach(parcel => {
-                    if (parcelCounts.hasOwnProperty(parcel.properties.type)) {
-                        parcelCounts[parcel.properties.type]++;
-                    }
-                });
+            //     // Count parcels by type
+            //     const parcelCounts = {
+            //         searched: 0,
+            //         engaged: 0,
+            //         claimed: 0
+            //     };
 
-                const types = ['searched', 'engaged', 'claimed'];
-                types.forEach(type => {
-                    const label = document.createElement('label');
-                    const checkbox = document.createElement('input');
-                    checkbox.type = 'checkbox';
-                    checkbox.checked = true;
-                    checkbox.value = type;
+            //     parcels.feature_parcels.features.forEach(parcel => {
+            //         if (parcelCounts.hasOwnProperty(parcel.properties.type)) {
+            //             parcelCounts[parcel.properties.type]++;
+            //         }
+            //     });
 
-                    const colorIndicator = document.createElement('span');
-                    colorIndicator.className = 'color-indicator';
-                    colorIndicator.style.backgroundColor = getMarkerColor(type);
+            //     const types = ['searched', 'engaged', 'claimed'];
+            //     types.forEach(type => {
+            //         const label = document.createElement('label');
+            //         const checkbox = document.createElement('input');
+            //         checkbox.type = 'checkbox';
+            //         checkbox.checked = true;
+            //         checkbox.value = type;
 
-                    checkbox.addEventListener('change', (e) => {
-                        if (e.target.checked) {
-                            activeFilters.push(type);
-                        } else {
-                            activeFilters = activeFilters.filter(t => t !== type);
-                        }
-                        // Get current search term
-                        const searchTerm = filterSection.querySelector('.search-box').value.toLowerCase();
+            //         const colorIndicator = document.createElement('span');
+            //         colorIndicator.className = 'color-indicator';
+            //         colorIndicator.style.backgroundColor = getMarkerColor(type);
 
-                        // Update markers
-                        markers.forEach(marker => {
-                            const markerType = marker.get('parcelType');
-                            marker.setVisible(activeFilters.includes(markerType));
-                        });
+            //         checkbox.addEventListener('change', (e) => {
+            //             if (e.target.checked) {
+            //                 activeFilters.push(type);
+            //             } else {
+            //                 activeFilters = activeFilters.filter(t => t !== type);
+            //             }
+            //             // Get current search term
+            //             const searchTerm = filterSection.querySelector('.search-box').value.toLowerCase();
 
-                        // Update cards visibility considering both filter and search
-                        const cards = document.querySelectorAll('.parcel-card');
-                        cards.forEach(card => {
-                            const cardType = card.querySelector('p:nth-child(3)').textContent.split(': ')[1];
-                            const parcelName = card.querySelector('p:nth-child(2)').textContent.toLowerCase();
-                            const shouldShow = activeFilters.includes(cardType) && parcelName.includes(searchTerm);
-                            card.style.display = shouldShow ? 'block' : 'none';
-                        });
-                    });
+            //             // Update markers
+            //             markers.forEach(marker => {
+            //                 const markerType = marker.get('parcelType');
+            //                 marker.setVisible(activeFilters.includes(markerType));
+            //             });
 
-                    label.appendChild(checkbox);
-                    label.appendChild(colorIndicator);
-                    label.appendChild(document.createTextNode(`${type.charAt(0).toUpperCase() + type.slice(1)} (${parcelCounts[type]})`));
-                    filterSection.appendChild(label);
-                });
+            //             // Update cards visibility considering both filter and search
+            //             const cards = document.querySelectorAll('.parcel-card');
+            //             cards.forEach(card => {
+            //                 const cardType = card.querySelector('p:nth-child(3)').textContent.split(': ')[1];
+            //                 const parcelName = card.querySelector('p:nth-child(2)').textContent.toLowerCase();
+            //                 const shouldShow = activeFilters.includes(cardType) && parcelName.includes(searchTerm);
+            //                 card.style.display = shouldShow ? 'block' : 'none';
+            //             });
+            //         });
 
-                // Add search box
-                const searchBox = document.createElement('input');
-                searchBox.type = 'text';
-                searchBox.className = 'search-box';
-                searchBox.placeholder = 'Search parcels by name...';
-                searchBox.addEventListener('input', (e) => {
-                    const searchTerm = e.target.value.toLowerCase();
-                    const cards = document.querySelectorAll('.parcel-card');
+            //         label.appendChild(checkbox);
+            //         label.appendChild(colorIndicator);
+            //         label.appendChild(document.createTextNode(`${type.charAt(0).toUpperCase() + type.slice(1)} (${parcelCounts[type]})`));
+            //         filterSection.appendChild(label);
+            //     });
 
-                    cards.forEach(card => {
-                        const parcelName = card.querySelector('p:nth-child(2)').textContent.toLowerCase(); // "Name: xxx"
-                        const shouldShow = parcelName.includes(searchTerm) &&
-                            activeFilters.includes(card.querySelector('p:nth-child(3)').textContent.split(': ')[1]);
-                        card.style.display = shouldShow ? 'block' : 'none';
-                    });
-                });
+            //     // Add search box
+            //     const searchBox = document.createElement('input');
+            //     searchBox.type = 'text';
+            //     searchBox.className = 'search-box';
+            //     searchBox.placeholder = 'Search parcels by name...';
+            //     searchBox.addEventListener('input', (e) => {
+            //         const searchTerm = e.target.value.toLowerCase();
+            //         const cards = document.querySelectorAll('.parcel-card');
 
-                filterSection.appendChild(searchBox);
-                rightSidebar.appendChild(filterSection);
+            //         cards.forEach(card => {
+            //             const parcelName = card.querySelector('p:nth-child(2)').textContent.toLowerCase(); // "Name: xxx"
+            //             const shouldShow = parcelName.includes(searchTerm) &&
+            //                 activeFilters.includes(card.querySelector('p:nth-child(3)').textContent.split(': ')[1]);
+            //             card.style.display = shouldShow ? 'block' : 'none';
+            //         });
+            //     });
 
-                parcels.feature_parcels.features.forEach(parcel => {
-                    const card = document.createElement('div');
-                    card.className = 'parcel-card';
+            //     filterSection.appendChild(searchBox);
+            //     rightSidebar.appendChild(filterSection);
 
-                    const typeIndicator = document.createElement('div');
-                    typeIndicator.className = 'parcel-type-indicator';
-                    typeIndicator.style.backgroundColor = getMarkerColor(parcel.properties.type);
+            //     parcels.feature_parcels.features.forEach(parcel => {
+            //         const card = document.createElement('div');
+            //         card.className = 'parcel-card';
 
-                    // Set parcel ID as data attribute
-                    card.dataset.parcelId = parcel.properties.id;
+            //         const typeIndicator = document.createElement('div');
+            //         typeIndicator.className = 'parcel-type-indicator';
+            //         typeIndicator.style.backgroundColor = getMarkerColor(parcel.properties.type);
 
-                    card.innerHTML = `
-              <h3>ID: ${parcel.properties.id}</h3>
-              <p>Name: ${parcel.properties.name}</p>
-              <p>Type: ${parcel.properties.type}</p>
-            `;
+            //         // Set parcel ID as data attribute
+            //         card.dataset.parcelId = parcel.properties.id;
 
-                    // Add click handler to center on marker
-                    card.addEventListener('click', () => {
-                        const marker = markers.find(m => m.get('parcelId') === parcel.properties.id);
-                        if (marker) {
-                            // Center the map
-                            map.panTo(marker.getPosition());
+            //         card.innerHTML = `
+            //             <h3>ID: ${parcel.properties.id}</h3>
+            //             <p>Name: ${parcel.properties.name}</p>
+            //             <p>Type: ${parcel.properties.type}</p>
+            //         `;
 
-                            // Highlight the marker
-                            highlightMarker(marker);
+            //         // Add click handler to center on marker
+            //         card.addEventListener('click', () => {
+            //             const marker = markers.find(m => m.get('parcelId') === parcel.properties.id);
+            //             if (marker) {
+            //                 // Center the map
+            //                 map.panTo(marker.getPosition());
 
-                            // Remove highlight from all cards
-                            document.querySelectorAll('.parcel-card').forEach(c => {
-                                c.classList.remove('highlighted');
-                            });
+            //                 // Highlight the marker
+            //                 highlightMarker(marker);
 
-                            // Highlight this card
-                            card.classList.add('highlighted');
-                        }
-                    });
+            //                 // Remove highlight from all cards
+            //                 document.querySelectorAll('.parcel-card').forEach(c => {
+            //                     c.classList.remove('highlighted');
+            //                 });
 
-                    card.appendChild(typeIndicator);
-                    rightSidebar.appendChild(card);
-                });
-            }
+            //                 // Highlight this card
+            //                 card.classList.add('highlighted');
+            //             }
+            //         });
+
+            //         card.appendChild(typeIndicator);
+            //         rightSidebar.appendChild(card);
+            //     });
+            // }
 
             window.initMap = initMap;
 
@@ -1046,7 +1064,185 @@
                     top: 0,
                     behavior: 'smooth'
                 });
-            });</script>
+            });
+
+
+            class ParcelManager {
+                constructor() {
+                    this.activeFilters = ['searched', 'engaged', 'claimed'];
+                    this.rightSidebar = document.getElementById('right-sidebar');
+                    this.markers = new Map();
+                    this.parcelCounts = {
+                        searched: 0,
+                        engaged: 0,
+                        claimed: 0
+                    };
+                }
+
+                init(parcels) {
+                    this.parcels = parcels;
+                    this.clearSidebar();
+                    this.renderFilterSection();
+                    this.renderParcelCards();
+                }
+
+                clearSidebar() {
+                    this.rightSidebar.innerHTML = '';
+                }
+
+                getMarkerColor(type) {
+                    const colors = {
+                        searched: '#FFA500',
+                        engaged: '#4CAF50',
+                        claimed: '#2196F3',
+                        default: '#808080'
+                    };
+                    return colors[type] || colors.default;
+                }
+
+                renderFilterSection() {
+                    const filterSection = document.createElement('div');
+                    filterSection.className = 'filter-section';
+                    filterSection.innerHTML = '<h3>Filter Parcels</h3>';
+
+                    // Count parcels by type
+                    this.parcels.feature_parcels.features.forEach(parcel => {
+                        if (this.parcelCounts.hasOwnProperty(parcel.properties.type)) {
+                            this.parcelCounts[parcel.properties.type]++;
+                        }
+                    });
+
+                    // Create filter checkboxes
+                    ['searched', 'engaged', 'claimed'].forEach(type => {
+                        const label = this.createFilterLabel(type);
+                        filterSection.appendChild(label);
+                    });
+
+                    // Add search box
+                    const searchBox = this.createSearchBox();
+                    filterSection.appendChild(searchBox);
+                    this.rightSidebar.appendChild(filterSection);
+                }
+
+                createFilterLabel(type) {
+                    const label = document.createElement('label');
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.checked = true;
+                    checkbox.value = type;
+
+                    const colorIndicator = document.createElement('span');
+                    colorIndicator.className = 'color-indicator';
+                    colorIndicator.style.backgroundColor = this.getMarkerColor(type);
+
+                    checkbox.addEventListener('change', (e) => this.handleFilterChange(e));
+
+                    label.appendChild(checkbox);
+                    label.appendChild(colorIndicator);
+                    label.appendChild(document.createTextNode(
+                        `${type.charAt(0).toUpperCase() + type.slice(1)} (${this.parcelCounts[type]})`
+                    ));
+
+                    return label;
+                }
+
+                createSearchBox() {
+                    const searchBox = document.createElement('input');
+                    searchBox.type = 'text';
+                    searchBox.className = 'search-box';
+                    searchBox.placeholder = 'Search parcels by name...';
+                    searchBox.addEventListener('input', (e) => this.handleSearch(e));
+                    return searchBox;
+                }
+
+                renderParcelCards() {
+                    const fragment = document.createDocumentFragment();
+
+                    this.parcels.feature_parcels.features.forEach(parcel => {
+                        const card = this.createParcelCard(parcel);
+                        fragment.appendChild(card);
+                    });
+
+                    this.rightSidebar.appendChild(fragment);
+                }
+
+                createParcelCard(parcel) {
+                    const card = document.createElement('div');
+                    card.className = 'parcel-card';
+                    card.dataset.parcelId = parcel.properties.id;
+
+                    const typeIndicator = document.createElement('div');
+                    typeIndicator.className = 'parcel-type-indicator';
+                    typeIndicator.style.backgroundColor = this.getMarkerColor(parcel.properties.type);
+
+                    card.innerHTML = `
+                        <h3>ID: ${parcel.properties.id}</h3>
+                        <p>Name: ${parcel.properties.name}</p>
+                        <p>Type: ${parcel.properties.type}</p>
+                    `;
+
+                    card.addEventListener('click', () => this.handleCardClick(parcel.properties.id));
+                    card.appendChild(typeIndicator);
+
+                    return card;
+                }
+
+                handleFilterChange(event) {
+                    const type = event.target.value;
+                    if (event.target.checked) {
+                        this.activeFilters.push(type);
+                    } else {
+                        this.activeFilters = this.activeFilters.filter(t => t !== type);
+                    }
+
+                    const searchTerm = this.rightSidebar.querySelector('.search-box').value.toLowerCase();
+                    this.updateVisibility(searchTerm);
+                }
+
+                handleSearch(event) {
+                    const searchTerm = event.target.value.toLowerCase();
+                    this.updateVisibility(searchTerm);
+                }
+
+                handleCardClick(parcelId) {
+                    const marker = markers.find(m => m.get('parcelId') === parcelId);
+                    if (marker) {
+                        map.panTo(marker.getPosition());
+                        this.highlightMarker(marker);
+                        this.highlightCard(parcelId);
+                    }
+                }
+
+                highlightCard(parcelId) {
+                    const cards = document.querySelectorAll('.parcel-card');
+                    cards.forEach(card => {
+                        card.classList.remove('highlighted');
+                        if (card.dataset.parcelId === String(parcelId)) {
+                            card.classList.add('highlighted');
+                            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                    });
+                }
+
+                updateVisibility(searchTerm) {
+                    const cards = document.querySelectorAll('.parcel-card');
+                    cards.forEach(card => {
+                        const cardType = card.querySelector('p:nth-child(3)').textContent.split(': ')[1];
+                        const parcelName = card.querySelector('p:nth-child(2)').textContent.toLowerCase();
+                        const shouldShow = this.activeFilters.includes(cardType) &&
+                            parcelName.includes(searchTerm);
+                        card.style.display = shouldShow ? 'block' : 'none';
+                    });
+
+                    // Update markers visibility
+                    markers.forEach(marker => {
+                        const markerType = marker.get('parcelType');
+                        marker.setVisible(this.activeFilters.includes(markerType));
+                    });
+                }
+            }
+
+        </script>
     </body>
 
     </html>
