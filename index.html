@@ -581,7 +581,8 @@
         id="scroll-to-top" title="Scroll to top">↑↑</button>
     </div>
     <script>
-      // Event Bus implementation
+      
+      // Event Bus 
       class EventBus {
         constructor() {
           this.events = {};
@@ -610,7 +611,6 @@
           this.markers = [];
           this.activeMarker = null;
 
-          // Ensure the DOM and Google Maps API are ready
           window.onload = () => {
             this.initMap();
           };
@@ -652,15 +652,6 @@
           this.polygons.forEach(p => p.setOptions({ fillColor: '#2196F3', fillOpacity: 0.3 }));
           polygon.setOptions({ fillColor: '#4CAF50', fillOpacity: 0.5 });
           this.eventBus.emit('polygonClicked', { polygon });
-
-          // fetch(`https://api.rainplan.com/api:IME/incentive_by_esri_id?esri_id=${polygon.esri_id}`)
-          //   .then(response => response.json())
-          //   .then(incentives => {
-          //   });
-
-          // fetch(`https://api.rainplan.com/api:IME/jurisdiction_parcels_geojson?esri_id=${polygon.esri_id}`)
-          //   .then(response => response.json())
-          //   .then(parcelsData => this.loadParcels(parcelsData));
         }
 
         loadParcels(parcelsData) {
@@ -684,10 +675,20 @@
         }
 
         handleMarkerClick(marker) {
+          this.eventBus.emit('markerClicked', { parcelId: marker.get('parcelId') });
+
           this.resetMarkers();
           marker.setIcon(this.getHighlightedMarkerIcon(marker.get('parcelType')));
           this.activeMarker = marker;
-          this.eventBus.emit('markerClicked', { parcelId: marker.get('parcelId') });
+        }
+
+        highlightMarkerById(parcelId) {
+          const marker = this.markers.find(marker => marker.get('parcelId') === parcelId);
+          if (marker) {
+            this.resetMarkers();
+            marker.setIcon(this.getHighlightedMarkerIcon(marker.get('parcelType')));
+            this.activeMarker = marker;
+          }
         }
 
         resetMarkers() {
@@ -854,10 +855,10 @@
             card.className = 'parcel-card';
             card.dataset.parcelId = parcel.properties.id;
             card.innerHTML = `
-        <h3>ID: ${parcel.properties.id}</h3>
-        <p>Name: ${parcel.properties.name}</p>
-        <p>Type: ${parcel.properties.type}</p>
-      `;
+            <h3>ID: ${parcel.properties.id}</h3>
+            <p>Name: ${parcel.properties.name}</p>
+            <p>Type: ${parcel.properties.type}</p>
+          `;
 
             const typeIndicator = document.createElement('div');
             typeIndicator.className = 'parcel-type-indicator';
@@ -933,7 +934,6 @@
           console.log('eventBus polygonClicked', data);
 
           const { esri_id } = data.polygon;
-
           //load new data
           fetch(`https://api.rainplan.com/api:IME/incentive_by_esri_id?esri_id=${esri_id}`)
             .then(response => response.json())
@@ -950,17 +950,18 @@
               ui.displayParcels(parcelsData, data.name);
             });
 
-
         });
 
         eventBus.on('parcelCardClicked', data => {
           console.log('eventBus parcelCardClicked', data);
           eventBus.emit('markerClicked', { parcelId: data.parcelId });
+          mapObj.highlightMarkerById(data.parcelId);
         });
 
         eventBus.on('markerClicked', data => {
           console.log('eventBus markerClicked', data);
           ui.highlightParcelCard(data.parcelId);
+
         });
       }
 
