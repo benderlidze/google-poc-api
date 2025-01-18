@@ -23,17 +23,13 @@
     }
 
     #app-bar {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
       background: white;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       display: flex;
       align-items: center;
-      padding: 0 24px;
-      z-index: 1000;
 
+      z-index: 1000;
+      height: 80px; /* Set fixed height for app-bar */
       display: flex;
       flex-direction: row;
       justify-content: space-between;
@@ -54,12 +50,12 @@
 
     #container {
       display: flex;
-      height: 100vh;
+      height: calc(100vh - 80px); /* Subtract app-bar height from viewport height */
     }
 
     #map {
       flex: 1;
-      height: 100%;
+      height: 100%; /* Will fill container height */
     }
 
     #left-sidebar {
@@ -71,6 +67,7 @@
       transition: all 0.3s ease;
       display: none;
       /* Hide initially */
+      height: 100%;
     }
 
     #right-sidebar {
@@ -82,6 +79,7 @@
       transition: all 0.3s ease;
       display: none;
       /* Hide initially */
+      height: 100%;
     }
 
     #left-sidebar.collapsed,
@@ -336,7 +334,7 @@
 <body>
 
 
-  <div id="app-bar ">
+  <div id="app-bar">
     <!-- <div id="jurisdiction-name">Select a jurisdiction</div> -->
 
     <div class="top-container">
@@ -703,6 +701,7 @@
         checkboxes.forEach(checkbox => activeFilters.push(checkbox.value));
 
         const searchTerm = document.querySelector('#right-sidebar .filter-section .search-box').value.toLowerCase();
+
         const cards = document.querySelectorAll('.parcel-card');
         cards.forEach(card => {
           const parcelId = card.dataset.parcelId;
@@ -715,9 +714,6 @@
             card.style.display = 'none';
           }
         });
-
-        console.log('',);
-
       }
 
       highlightParcelCard(parcelId) {
@@ -791,5 +787,3 @@
 
 </html>
 </body>
-
-</html>
