@@ -1,795 +1,616 @@
 <!doctype html>
-<html class="" lang="en">
+<html>
 
 <head>
-  <meta charset="utf-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=5,user-scalable=0" />
-  <base href="/" target="_self" />
-  <title>Login Signup | My Rainplan</title>
-  <link rel="icon" type="image/x-icon" href="favicon.ico?_wwcv=77" />
-  <link rel="manifest" href="manifest.json?_wwcv=77" />
-  <meta name="theme-color" content="" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap"
-    rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'">
-  <link href="public/fonts/Phosphor/font.css?_wwcv=77" rel="preload" as="style"
-    onload="this.onload=null;this.rel='stylesheet'">
-  <link
-    href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
-    rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'">
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;500;600;700;800;900&display=swap"
-    rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'">
-  <style>
-    :root {
-      --ww-default-font-family: 'Montserrat', sans-serif
-    }
-  </style>
-  <style>
-    :root {
-      --4df94306-e002-478e-9a4c-708b10632083: #003EB3;
-      --6d3618ed-d32c-4b6f-90b4-aedb99a5e18f: #FFFFFF;
-      --59143176-d13d-4169-b5e2-92d257c0a65c: #61B723;
-      --6cd60280-163b-41a6-a4e7-6fcae681406a: 400 16px/normal 'Montserrat', sans-serif;
-      --c433883d-1dc7-4d4c-9b52-84b4e0fee102: 600 15px/normal 'Montserrat', sans-serif;
-      --00fb5429-29f2-4d69-a514-4f6f9f7bd126: 500 15px/normal 'Montserrat', sans-serif;
-      --169283c0-f9c1-4bb0-9840-aa6f04c8ce0b: 700 48px/normal 'Montserrat', sans-serif;
-      --3bfbf914-08d5-406c-a2f9-df92a05adba2: 700 30px/normal 'Montserrat', sans-serif;
-      --5fbb6138-31d9-4389-969e-1459bceb3c49: 700 24px/normal 'Montserrat', sans-serif;
-      --9d1b0ccc-fe26-41e8-b693-e87ff3f58c28: 700 32px/normal 'Montserrat', sans-serif;
-      --e509c3b8-e0e7-423a-a67e-589b42cc825c: 700 20px/normal 'Montserrat', sans-serif;
-      --94101a6c-d515-4c58-985b-dd5c00a6f6bb: 700 28px/normal 'Montserrat', sans-serif;
-      --ea4d4855-6501-449e-a918-ba0a0cbb760f: 700 18px/normal 'Montserrat', sans-serif;
-      --25ad263d-d6f7-46e3-922b-41aca72f7281: 700 24px/normal 'Montserrat', sans-serif;
-      --3185a1e2-0410-46b5-b7a9-fc4529fd9dde: 700 16px/normal 'Montserrat', sans-serif;
-      --184bd44c-c9c6-4747-9a96-54d199f1912e: 700 20px/normal 'Montserrat', sans-serif;
-      --13c953d5-f4e3-4220-b8ce-5d992c20ffd8: 400 14px/normal 'Montserrat', sans-serif;
-      --28b586fa-96c4-4543-8da7-d9cfe4fb9690: 700 20px/normal 'Montserrat', sans-serif;
-      --a2a89267-9194-4fc8-9aea-d278ac981cfd: #52C41A;
-      --32231d17-2ab0-4e75-8fba-e121ef033880: #002C8C;
-      --4147d86a-6c8d-4796-88af-42f74fa08737: #003EB3;
-      --19427395-76bf-4e5b-9afc-c8aaa4d840e0: #195ABD;
-      --bf2e432a-c6ad-48ff-b9d0-efc0749950c7: #00328C;
-      --d680b02f-d0f7-4ae3-be61-30cb244e8094: #4096FF;
-      --6ed1c0cc-d193-4240-8261-1df70e5592a8: #E6F4FF;
-      --5a94fde9-5514-4111-904e-e5215fb5da8f: #135200;
-      --b2b32153-dc09-419d-9923-2a5fda13f2e3: #237804;
-      --ef3e4d80-9e60-4ed3-83e1-a3f1746ec125: #389E0D;
-      --614c896f-959a-4335-ae7e-f0b96cc335ef: #389E0D;
-      --e2a74b3f-782e-466e-b142-5dcdc7a3d7a9: #73D13D;
-      --867968b3-259a-47a7-a989-dc8f6dbb593a: #61B723;
-      --7f33aa66-7bc1-481b-b04a-165289312597: #E09900;
-      --c6c17c3e-bd15-4a9b-ac87-788da89eba0c: #FF4D4F;
-      --27017023-634e-4212-b419-2109d46b9581: #FAAD14;
-      --e675f20a-8357-4afb-8e19-ab886e44c728: #E0E0E0;
-      --03f97d03-e8b5-4260-b9a6-84b4e9ac4edb: #000000D9;
-      --7419c94a-472d-45eb-89ac-debf7ef21b35: 400 14px/22px var(--ww-default-font-family, sans-serif);
-      --db07d869-7076-4fff-8cb5-8f81b9060866: #00000040;
-      --802450d4-96e6-46b9-88b5-4ff2ad0c2a9c: 4px;
-      --0a3be4c7-8af6-4f2a-8356-cfc9a654bedb: 8px;
-      --d3c878ba-280d-4a58-b439-dec4f641301e: 12px;
-      --c5f92a83-8757-46c9-a0b3-a6def1d6d25f: 16px;
-      --35f471a8-fb6a-4b4f-85cd-d6eb927956ee: 20px;
-      --b4d95d06-8a9f-4fbc-8696-2796a7a458b2: 24px;
-      --afb0622b-008d-4d99-893c-0f0ebe9cb2ae: #00000073;
-      --b49b91a8-996d-45e6-ae47-795f8322c041: 500 38px/46px var(--ww-default-font-family, sans-serif);
-      --e9d2a21b-ea8d-459b-87bf-131e4d6af9ee: 500 30px/40px var(--ww-default-font-family, sans-serif);
-      --8d14c83a-63a5-4f4f-a12a-97af4258074d: 500 24px/32px var(--ww-default-font-family, sans-serif);
-      --1a3aa549-d178-4106-bc9e-5d1e7bb34c8c: 500 16px/24px var(--ww-default-font-family, sans-serif);
-      --6b591379-573d-425b-bc53-12a4426e1513: 600 14px/22px var(--ww-default-font-family, sans-serif);
-      --7135d9d0-003f-4d5b-979b-4835ed0b65bd: #0000000F;
-      --269e56d1-6215-4b79-9d82-7e6cee40fa2a: #000000D9;
-      --8fbac7c3-9c29-4120-a916-efddf0ee92e0: #00000040;
-      --b841af6a-0836-4052-adfd-99ee3aa9ee4a: #FFFFFF;
-      --d9f75b67-53a7-4a7f-9a0e-f4ab7985cde6: 400 12px/20px var(--ww-default-font-family, sans-serif);
-      --4ef5bd5d-6c26-4512-8a87-f23d0269918a: 600 16px/24px var(--ww-default-font-family, sans-serif);
-      --af4a2331-71bc-44af-9661-b38551756eab: 600 12px/18px var(--ww-default-font-family, sans-serif);
-      --dba66191-af24-45ac-ae67-dd3770eec837: 400 12px/18px var(--ww-default-font-family, sans-serif);
-      --04a090b3-eb67-4f3d-8946-bb1896dd0c4b: 400 16px/22px var(--ww-default-font-family, sans-serif);
-      --0fa89c8c-d0cf-4c33-81cc-1a4524267593: 400 12px/20px var(--ww-default-font-family, sans-serif);
-      --38ffbeff-764d-4bfc-9245-65b7bc0554d3: 500 20px/28px var(--ww-default-font-family, sans-serif);
-      --f0d118f6-8610-4be0-85a6-7732ededbcbd: 400 60px/60px var(--ww-default-font-family, sans-serif);
-      --c3f20f8d-c404-4890-a149-528c554d3a45: 400 48px/52px var(--ww-default-font-family, sans-serif);
-      --188c18b9-1d63-48aa-b183-a0e339c28999: 400 36px/36px var(--ww-default-font-family, sans-serif);
-      --b47fda5e-c8a2-479d-a3d2-000ef4b6ee4e: 400 24px/30px var(--ww-default-font-family, sans-serif);
-      --d92a1cb7-94b6-4feb-9413-e70e51979f97: 400 18px/26px var(--ww-default-font-family, sans-serif);
-      --f2a71115-b847-4f32-ade9-6ec28c04d178: 400 16px/24px var(--ww-default-font-family, sans-serif);
-      --6991fe26-2f58-467a-a1c7-e9a576888df6: 400 12px/16px var(--ww-default-font-family, sans-serif);
-      --413f19fe-06f4-4af0-bc58-613b9c444489: 300 48px/52px var(--ww-default-font-family, sans-serif);
-      --36c90402-a417-43a8-9707-91580919116e: 300 24px/30px var(--ww-default-font-family, sans-serif);
-      --fd2aa2ea-6285-4979-9dd4-0afe769b1cf7: 300 16px/24px var(--ww-default-font-family, sans-serif);
-      --0ed994cb-55a6-4345-a079-6317154abeb9: 300 12px/16px var(--ww-default-font-family, sans-serif);
-      --47176e75-5460-40c9-add9-f675437da5c3: 500 60px/60px var(--ww-default-font-family, sans-serif);
-      --a46682a1-6522-4402-851e-ac1aba0b897c: 500 36px/36px var(--ww-default-font-family, sans-serif);
-      --f59d015e-c1a5-41b0-a0bd-d7685bfa9e04: 500 18px/26px var(--ww-default-font-family, sans-serif);
-      --90e4433f-28ec-48c5-8432-3a4ad4f12c6a: 500 14px/20px var(--ww-default-font-family, sans-serif);
-      --1a0dc46e-3d23-4ac0-ada4-bc80d295dd7f: 500 11px/16px var(--ww-default-font-family, sans-serif);
-      --e6d49f9e-afe0-4248-8d07-d27a1c9b6230: 700 48px/52px var(--ww-default-font-family, sans-serif);
-      --63427591-e191-4f49-bcd0-e63f63c1f0d0: 700 24px/30px var(--ww-default-font-family, sans-serif);
-      --ad5de84f-abf6-4f14-81d9-ee7fdc1674f6: 700 16px/24px var(--ww-default-font-family, sans-serif);
-      --4dba5634-32ac-49d9-9e3b-1c227801b3a8: 700 12px/16px var(--ww-default-font-family, sans-serif);
-      --f4a28b33-58fd-41ca-b1fd-feda6a0a7e75: 400 14px/20px var(--ww-default-font-family, sans-serif);
-      --c895a4f5-7855-4344-9a83-dff3321d79e6: 400 11px/16px var(--ww-default-font-family, sans-serif);
-      --b593a132-fc74-46b5-beca-3b5698188264: 300 60px/60px var(--ww-default-font-family, sans-serif);
-      --306b96db-c31c-4957-832b-199fd5382cb2: 300 36px/36px var(--ww-default-font-family, sans-serif);
-      --a849b37a-ec69-4519-8689-7ca0ec99905e: 300 18px/26px var(--ww-default-font-family, sans-serif);
-      --355d65f8-3e12-4e04-a4d3-3181e93175b8: 300 14px/20px var(--ww-default-font-family, sans-serif);
-      --c455b4ea-99a3-49f6-a60c-659ec8afdf31: 300 11px/16px var(--ww-default-font-family, sans-serif);
-      --c924f875-829c-4696-8dbc-a392f579d23f: 500 48px/52px var(--ww-default-font-family, sans-serif);
-      --3d798d9f-1dff-4804-987f-f3a7192ef9c9: 500 24px/30px var(--ww-default-font-family, sans-serif);
-      --a610bd35-596d-4cec-b59c-6aa7e996721b: 500 16px/24px var(--ww-default-font-family, sans-serif);
-      --d7a3303e-30a9-4e87-a23c-cb6e262d91e7: 500 12px/16px var(--ww-default-font-family, sans-serif);
-      --261e7097-5da3-4f2d-98ce-77accbcaabb3: 700 60px/60px var(--ww-default-font-family, sans-serif);
-      --5cd34ef8-3e66-48d9-a40c-173b6be0752a: 700 36px/40px var(--ww-default-font-family, sans-serif);
-      --4e3cfba6-0330-4c70-bf29-d8dd3d4d3b94: 700 18px/26px var(--ww-default-font-family, sans-serif);
-      --665adc55-24af-4037-8838-a84d19562ea2: 700 14px/20px var(--ww-default-font-family, sans-serif);
-      --94e99de8-68eb-4787-80af-c99d29e791d5: 700 11px/16px var(--ww-default-font-family, sans-serif);
-      --a30feb65-a942-4bac-9f38-16dfb4436c11: #e1e3e5;
-      --02e08795-d352-49fd-bc93-5286044ef953: #c2c7ce;
-      --c8122ad7-6c9a-437c-84eb-04e924772175: #a3acb9;
-      --e04035ac-59ff-4f90-9036-1e77cda9cb24: #8692a1;
-      --fdb7537c-e7ec-40ba-a311-0e01c275a6ee: #6c7888;
-      --a74a44a9-425f-4705-b866-f1421c68df52: #545f6c;
-      --781a330b-49ce-4467-80f7-40a4a21b1299: #3f4750;
-      --34573081-741e-4f9b-bb0a-b54fa699d29d: #2a2f34;
-      --04645073-e69e-4e73-80ef-5f1f56118c99: #151618;
-      --44df1337-b30d-48d2-9cdf-9c0ce338502e: #e2e2e2;
-      --b56a2bd5-4834-484d-8ecb-7760c0ebc14b: #c7c7c7;
-      --e964af1c-8020-4e44-96df-93b418abf1ff: #ababab;
-      --aed66389-4433-45b2-be66-5622e3df32e7: #919191;
-      --5172739f-2906-4f10-a758-a1d4929606dc: #777777;
-      --eb5500ae-9ab2-4f6a-83e9-afdc2e3bc1b2: #5e5e5e;
-      --1804f5dd-ffbe-4d0f-a18e-7d9af9eb1c8f: #464646;
-      --f0e9c89a-44ab-4e0e-b1d4-1c223f5c1088: #2e2e2e;
-      --4cb797eb-6ee0-474f-b1dc-99461ce603bc: #161616;
-      --9e8130f5-d6e8-45fe-a977-2cc5e23c6bbb: #f8f8f7;
-      --0f661c98-70c5-4b0f-9ce1-6f860eb63b49: #e5e2de;
-      --bb3eaa2d-d4b7-4b14-8e3d-245d1ff7d00b: #cdc5bc;
-      --0b2b321a-ec10-4f3b-bbbb-469272549bdb: #b5aa9c;
-      --6b06c6ba-a34b-4c75-ad9b-bfb7e3d302d4: #9b8f7f;
-      --f61a0146-c1a8-43c8-84e7-9167aa1bb25f: #817566;
-      --a182872b-7383-46fd-a619-8f51d0d52e37: #675c50;
-      --7950677e-aad2-4e7e-a55b-a0e4b568b0c6: #4c443b;
-      --a1277df6-36d4-45aa-b73c-b3e8c1ead1b5: #322d27;
-      --bfdde87c-ea57-4199-bdd9-93db2a273c9a: #181613;
-      --04b93f0a-1fe2-4b5d-8f1a-a487c7c67ef3: #d1e4ff;
-      --d4334cce-a468-42bf-9a6d-51aed19f8289: #a2caff;
-      --b5bcca88-2522-4e68-880e-aee6d63a2e47: #6faeff;
-      --b8065e7d-980b-4ae1-9b66-71c23c085a2a: #3090ff;
-      --c9179837-9d7e-4518-9fa7-8e065db8409d: #0075df;
-      --9821eac7-4263-4bb8-964c-47ddd1b963cf: #005db1;
-      --8bea7fb1-7617-43d7-8391-a42a8ba2ed9f: #004585;
-      --18dcd57b-d6f9-4fa8-9967-a2082f8b8c8e: #002e5b;
-      --dbefda4d-f2df-4a94-aa56-d154013e03e3: #001631;
-      --e9446b2b-09b0-4e6b-90aa-7d5760edcf4b: #f5ddcf;
-      --0fb23398-7e19-4878-943c-6cc4cb22e0c7: #f6b791;
-      --032d8d1a-8928-494b-86d7-0b10c8b6bb69: #f68c47;
-      --95f27f34-c853-49ff-ace4-f3d827bef530: #de6c0b;
-      --d1b5feb5-be21-4239-a938-9b35641d53c2: #b95700;
-      --5cf45ebd-4fc2-4d74-b7cf-022e9de4249f: #944403;
-      --ea6e1fcd-450b-4bf8-a835-8c85eb7e7f73: #6f3207;
-      --31c43a43-4017-45f3-a88b-fc93427b6464: #49220a;
-      --61a949be-2329-417a-8c47-8d5060a73eed: #231107;
-      --e3bb1f43-e60f-47a9-8d3d-f436511c95eb: #faf8ed;
-      --b19a2186-b06d-4a00-abc7-59a8b7252439: #f1e3a9;
-      --eaebb6eb-2114-42ef-9d3f-66c1037222f0: #c8aa19;
-      --c17c036a-24b7-435f-b6d0-2be3936c5447: #8d7500;
-      --14f92e1b-c639-4e6a-b09d-6a189218f090: #544406;
-      --4f0c4735-5c98-4ddc-9714-73d4410e47f9: #382d07;
-      --defdd300-5ef6-4a2e-9852-0328005bf8b7: #f4faf3;
-      --23aa7fa3-11f0-4d27-aa14-fb0a7d2473ed: #c6f0c5;
-      --b4a51e39-8e67-48ae-82b5-041ab116b358: #53c954;
-      --4c0c4797-47f3-416e-8f49-9e7749abc810: #2aad2c;
-      --efd91745-2fb2-4e7e-a5b0-9f0a372dcdcd: #1e7118;
-      --e5693771-d83f-46ab-85b6-7e9b0f1ea8c3: #1a3616;
-      --a0df6c5b-9408-4825-809c-bd96f7a6ccb8: #faf7f7;
-      --fb469904-507a-456a-930a-982b7010ca01: #f6efee;
-      --6bd67ea2-8fa9-43a5-8cf5-50f625558e3c: #f3b5b0;
-      --c8ad9641-1f8b-4f9e-972e-24d3d7c79164: #fa444d;
-      --fb8a0c40-ded1-491a-bac7-14016b364ef0: #af1129;
-      --2c7bfcbf-d833-46b0-9e49-bff3a2696a1f: #4f1a1c;
-      --abd52525-b934-474f-8b93-e976fece5f80: #e3c645;
-      --1ddbd5a9-0bf6-4f67-99f4-c4846032af7f: #ab8f05;
-      --24ab4fe2-969e-4cbc-9985-89c353066a89: #705c03;
-      --13fc8b4f-a356-4975-ba62-96bb6aa8fd25: #1c1604;
-      --fa4d9179-2c75-4b4e-ac46-90ca735cc6d2: #e6f6e6;
-      --cacd1009-7dcd-4c7b-a9d4-8978050bcaf9: #7ee27f;
-      --9475d0e1-b273-475a-b540-5fe7d8df2ea6: #009100;
-      --ae584ace-7bbd-4b34-8713-e000815bf128: #23521d;
-      --157c9b53-591d-410e-9018-916de18e1c0f: #0d1a0a;
-      --dcf7d119-b64f-4e4f-ba82-20185e1e3375: #f2dddb;
-      --74b3c7e8-14ef-4488-9962-388f8c533d23: #f78580;
-      --1c7b698e-806f-42aa-87ae-3ca740940b00: #de0030;
-      --dba3598f-a6ac-4791-a54d-c335ef510ac8: #7e1a23;
-      --199b6fa5-1912-4926-801c-ad88ee962d63: #241010;
-      --b44bfa26-84ac-4ce2-805c-6ab1ba8e9fec: #f7f1d9;
-      --5e7f9d06-2093-42b5-b06f-3c49c3cc5696: #f2f0ef;
-      --6c1d3a95-c836-4dc6-9135-2e0ce966be72: #f8f8f8;
-      --b8db72c0-cb8d-4f74-8de8-ae23882ccea2: #f0f1f1;
-      --a9bc8da4-0ee2-46ab-97aa-5980cd432c9e: #fbf7f4;
-      --8c2636a5-8f0c-4dd3-b5dc-1db6770c94fd: #f8efe9;
-      --530fd98b-c9ff-4178-8122-dfa61ebd54b2: #f8f8f8;
-      --be1705aa-2fa3-45e3-9a2d-b1e3154688a1: #f1f1f1;
-      --08b2c1eb-4626-4895-ad53-022caf0279fe: #f4f8ff;
-      --57730e5b-3d41-4c65-b5c5-591a2b4f2c6c: #e8f2ff;
-      --f52b33fb-9a7f-462d-b467-a670c2a12f7f: 2px;
-      --b363e15d-300e-4ff3-b2ac-f63ea21f5e16: 4px;
-      --7f9785c9-45e0-4bab-91b0-6122b1deafe7: 8px;
-      --02c62812-8afe-4200-a60a-2d9bd080e86c: 12px;
-      --492a9411-1702-4f94-828e-f03daf553237: 16px;
-      --6f3edf1a-cab9-4568-8e22-f912fa436965: 20px;
-      --b1f0e218-59f1-44f9-bc1e-eb5e50523d75: 32px;
-      --407b6723-0694-4e59-8df2-b5259c1d28d5: 40px;
-      --78490985-6b3f-48bb-a2ef-8187f3bfc8a6: 2px;
-    }
-
-    .ww-app-theme-dark {}
-  </style>
-  <link href="https://cdn.weweb.app/public/libs/weweb-icons/css/weweb-icons.min.css" rel="preload" as="style"
-    onload="this.onload=null;this.rel='stylesheet'">
-  <link href="https://cdn.weweb.app/public/libs/font-awesome/5.6.3/css/fontawesome.min.css" rel="preload" as="style"
-    onload="this.onload=null;this.rel='stylesheet'">
-  <link href="https://cdn.weweb.app/public/libs/font-awesome/5.6.3/css/fontawesome.min.css" rel="preload" as="style"
-    onload="this.onload=null;this.rel='stylesheet'">
-  <link href="https://cdn.weweb.app/public/libs/font-awesome/5.6.3/css/fontawesome.min.css" rel="preload" as="style"
-    onload="this.onload=null;this.rel='stylesheet'">
-  <link href="https://cdn.weweb.io/public/icons/heroicons/1.0.0/style.css" rel="preload" as="style"
-    onload="this.onload=null;this.rel='stylesheet'">
-  <link href="https://cdn.weweb.io/public/icons/phosphor/1.0.0/regular/phosphor-style.css" rel="preload" as="style"
-    onload="this.onload=null;this.rel='stylesheet'">
-  <link rel="alternate" hreflang="x-default" href="https://app.raincoin.ai/testembed/" />
-  <link rel="alternate" hreflang="en" href="https://app.raincoin.ai/testembed/" />
+  <title>Jurisdiction Map with Incentives</title>
+  <script
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCo85RezTo2m0-HlspByO-urwPIZDft2bM&libraries=places&callback=initMap&v=3.58"
+    defer="defer"></script>
+  <script src="https://unpkg.com/@googlemaps/markerclusterer@2.5.1/dist/index.min.js"></script>
   <style>
     * {
-      &::-webkit-scrollbar-thumb {
-        background-color: blue;
-        border-radius: red;
-      }
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    }
 
-      &::-webkit-scrollbar-track {
-        background-color: transparent;
-      }
+    html,
+    body {
+      height: 100%;
+      overflow: hidden;
+      position: relative;
+    }
 
-      &::-webkit-scrollbar {
-        width: 0px;
-        height: 4px;
-        background-color: transparent;
-      }
+    #app-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      z-index: 1000;
+
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+    }
+
+    #app-bar img {
+      height: 40px;
+      width: auto;
+    }
+
+    #jurisdiction-name {
+      flex: 1;
+      text-align: center;
+      font-size: 1.2rem;
+      font-weight: 500;
+      color: #1a202c;
+    }
+
+    #container {
+      display: flex;
+      height: 100vh;
+    }
+
+    #map {
+      flex: 1;
+      height: 100%;
+    }
+
+    #left-sidebar {
+      width: 400px;
+      overflow-y: auto;
+      padding: 24px;
+      background: #f8fafc;
+      border-right: 1px solid #e2e8f0;
+      transition: all 0.3s ease;
+      display: none;
+      /* Hide initially */
+    }
+
+    #right-sidebar {
+      width: 400px;
+      overflow-y: auto;
+      padding: 24px;
+      background: #f8fafc;
+      border-left: 1px solid #e2e8f0;
+      transition: all 0.3s ease;
+      display: none;
+      /* Hide initially */
+    }
+
+    #left-sidebar.collapsed,
+    #right-sidebar.collapsed {
+      width: 0;
+      padding: 0;
+      border: none;
+      overflow: hidden;
+    }
+
+    .toggle-sidebar {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 1000;
+      padding: 8px 12px;
+      background: white;
+      border: 1px solid #e2e8f0;
+      cursor: pointer;
+      box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
+      display: none;
+      /* Hide initially */
+    }
+
+    #toggle-left-sidebar {
+      left: 410px;
+      border-radius: 0 4px 4px 0;
+    }
+
+    #toggle-right-sidebar {
+      right: 410px;
+      border-radius: 4px 0 0 4px;
+    }
+
+    #toggle-left-sidebar.collapsed {
+      left: 0;
+    }
+
+    #toggle-right-sidebar.collapsed {
+      right: 0;
+    }
+
+    .filter-section {
+      background: white;
+      padding: 16px;
+      margin-bottom: 16px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .filter-section label {
+      display: flex;
+      align-items: center;
+      margin: 8px 0;
+      cursor: pointer;
+    }
+
+    .filter-section input[type="checkbox"] {
+      margin-right: 8px;
+    }
+
+    .search-box {
+      width: 100%;
+      padding: 8px 12px;
+      margin: 12px 0;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    .search-box:focus {
+      outline: none;
+      border-color: #2196F3;
+      box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
+    }
+
+    .filter-section .color-indicator {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 8px;
+    }
+
+    .parcel-card {
+      position: relative;
+      background: white;
+      padding: 24px;
+      margin-bottom: 16px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .highlighted {
+      background: #e3f2fd;
+      box-shadow: 0 4px 8px rgba(33, 150, 243, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .parcel-type-indicator {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+    }
+
+    .card {
+      background: white;
+      padding: 24px;
+      margin-bottom: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+
+    .card h3 {
+      margin-bottom: 12px;
+      color: #1a202c;
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+
+    .card img {
+      max-width: 120px;
+      height: auto;
+      margin-bottom: 16px;
+      border-radius: 8px;
+    }
+
+    .card p {
+      color: #4a5568;
+      line-height: 1.6;
+      margin-bottom: 12px;
+      font-size: 0.95rem;
+    }
+
+    .card a {
+      display: inline-block;
+      color: #3182ce;
+      text-decoration: none;
+      font-weight: 500;
+      padding: 8px 0;
+      position: relative;
+    }
+
+    .card a::after {
+      content: '';
+      position: absolute;
+      width: 100%;
+      height: 2px;
+      bottom: 0;
+      left: 0;
+      background-color: #3182ce;
+      transform: scaleX(0);
+      transform-origin: bottom right;
+      transition: transform 0.3s ease-out;
+    }
+
+    .card a:hover::after {
+      transform: scaleX(1);
+      transform-origin: bottom left;
+    }
+
+    #scroll-to-top {
+      position: fixed;
+      right: 420px;
+      /* Position it next to the right sidebar */
+      bottom: 20px;
+      width: 40px;
+      height: 40px;
+      background-color: #2196F3;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      display: none;
+      /* Hidden by default */
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s ease;
+      z-index: 1000;
+    }
+
+    #scroll-to-top:hover {
+      background-color: #1976D2;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    #scroll-to-top.visible {
+      display: flex;
+    }
+
+    #scroll-to-top.sidebar-collapsed {
+      right: 20px;
+    }
+
+    .search-bar {
+      display: flex;
+    }
+
+    .filters-container {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .top-container {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px;
+    }
+
+    .payout {
+      background: #f7fafc;
+      padding: 8px 12px;
+      border-radius: 6px;
+      display: inline-block;
+      margin: 4px 8px 4px 0;
+      font-size: 0.9rem;
+      color: #2d3748;
+    }
+
+    .button {
+      border: 1px solid #195bbc;
+      padding: 10px 20px;
+      border-radius: 4px;
+      background-color: white;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .button.main {
+      background-color: #195bbc;
+      color: white;
     }
   </style>
-  <meta name="title" content="Login Signup | My Rainplan">
-  <meta itemprop="name" content="Login Signup | My Rainplan">
-  <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="Login Signup | My Rainplan">
-  <meta property="og:title" content="Login Signup | My Rainplan">
-  <meta property="og:site_name" content="Login Signup | My Rainplan">
-  <meta property="og:type" content="website">
-  <meta name="robots" content="index, follow">
-  <script defer="defer" src="public/js/chunk-vendors.981954a1.js"></script>
-  <script defer="defer" src="public/js/chunk-common.30d0c1b8.js"></script>
-  <script defer="defer" src="public/js/testembed.51fe4d7d.js"></script>
-  <link href="public/css/testembed.4554a7ef.css" rel="stylesheet">
 </head>
 
-<body style="margin: 0; font-family: var(--ww-default-font-family, unset)"><noscript><strong>We're sorry but this
-      website doesn't work properly without JavaScript enabled. Please enable it to continue.</strong></noscript>
-  <div id="app"></div>
-  <!doctype html>
-  <html>
+<body>
 
-  <head>
-    <title>Jurisdiction Map with Incentives</title>
-    <script
-      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCo85RezTo2m0-HlspByO-urwPIZDft2bM&callback=initMap&v=3.58"
-      defer="defer"></script>
-    <script src="https://unpkg.com/@googlemaps/markerclusterer@2.5.1/dist/index.min.js"></script>
-    <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-      }
 
-      #app-bar {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 64px;
-        background: white;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        display: flex;
-        align-items: center;
-        padding: 0 24px;
-        z-index: 1000;
-      }
+  <div id="app-bar ">
+    <!-- <div id="jurisdiction-name">Select a jurisdiction</div> -->
 
-      #app-bar img {
-        height: 40px;
-        width: auto;
-      }
-
-      #jurisdiction-name {
-        flex: 1;
-        text-align: center;
-        font-size: 1.2rem;
-        font-weight: 500;
-        color: #1a202c;
-      }
-
-      #container {
-        display: flex;
-        height: 100vh;
-        position: relative;
-        padding-top: 64px;
-        /* Make space for app bar */
-      }
-
-      #map {
-        flex: 1;
-        height: 100%;
-      }
-
-      #left-sidebar {
-        width: 400px;
-        overflow-y: auto;
-        padding: 24px;
-        background: #f8fafc;
-        border-right: 1px solid #e2e8f0;
-        transition: all 0.3s ease;
-        display: none;
-        /* Hide initially */
-      }
-
-      #right-sidebar {
-        width: 400px;
-        overflow-y: auto;
-        padding: 24px;
-        background: #f8fafc;
-        border-left: 1px solid #e2e8f0;
-        transition: all 0.3s ease;
-        display: none;
-        /* Hide initially */
-      }
-
-      #left-sidebar.collapsed,
-      #right-sidebar.collapsed {
-        width: 0;
-        padding: 0;
-        border: none;
-        overflow: hidden;
-      }
-
-      .toggle-sidebar {
-        position: absolute;
-        top: 50%;
-        transform: translateY(-50%);
-        z-index: 1000;
-        padding: 8px 12px;
-        background: white;
-        border: 1px solid #e2e8f0;
-        cursor: pointer;
-        box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
-        transition: all 0.3s ease;
-        display: none;
-        /* Hide initially */
-      }
-
-      #toggle-left-sidebar {
-        left: 410px;
-        border-radius: 0 4px 4px 0;
-      }
-
-      #toggle-right-sidebar {
-        right: 410px;
-        border-radius: 4px 0 0 4px;
-      }
-
-      #toggle-left-sidebar.collapsed {
-        left: 0;
-      }
-
-      #toggle-right-sidebar.collapsed {
-        right: 0;
-      }
-
-      .filter-section {
-        background: white;
-        padding: 16px;
-        margin-bottom: 16px;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      }
-
-      .filter-section label {
-        display: flex;
-        align-items: center;
-        margin: 8px 0;
-        cursor: pointer;
-      }
-
-      .filter-section input[type="checkbox"] {
-        margin-right: 8px;
-      }
-
-      .search-box {
-        width: 100%;
-        padding: 8px 12px;
-        margin: 12px 0;
-        border: 1px solid #e2e8f0;
-        border-radius: 6px;
-        font-size: 14px;
-      }
-
-      .search-box:focus {
-        outline: none;
-        border-color: #2196F3;
-        box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
-      }
-
-      .filter-section .color-indicator {
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        display: inline-block;
-        margin-right: 8px;
-      }
-
-      .parcel-card {
-        position: relative;
-        background: white;
-        padding: 24px;
-        margin-bottom: 16px;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        cursor: pointer;
-        transition: all 0.3s ease;
-      }
-
-      .highlighted {
-        background: #e3f2fd;
-        box-shadow: 0 4px 8px rgba(33, 150, 243, 0.2);
-        transform: translateY(-2px);
-      }
-
-      .parcel-type-indicator {
-        position: absolute;
-        top: 12px;
-        right: 12px;
-        width: 16px;
-        height: 16px;
-        border-radius: 50%;
-      }
-
-      .card {
-        background: white;
-        padding: 24px;
-        margin-bottom: 20px;
-        border-radius: 12px;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        transition: transform 0.2s, box-shadow 0.2s;
-      }
-
-      .card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-      }
-
-      .card h3 {
-        margin-bottom: 12px;
-        color: #1a202c;
-        font-size: 1.25rem;
-        font-weight: 600;
-      }
-
-      .card img {
-        max-width: 120px;
-        height: auto;
-        margin-bottom: 16px;
-        border-radius: 8px;
-      }
-
-      .card p {
-        color: #4a5568;
-        line-height: 1.6;
-        margin-bottom: 12px;
-        font-size: 0.95rem;
-      }
-
-      .card a {
-        display: inline-block;
-        color: #3182ce;
-        text-decoration: none;
-        font-weight: 500;
-        padding: 8px 0;
-        position: relative;
-      }
-
-      .card a::after {
-        content: '';
-        position: absolute;
-        width: 100%;
-        height: 2px;
-        bottom: 0;
-        left: 0;
-        background-color: #3182ce;
-        transform: scaleX(0);
-        transform-origin: bottom right;
-        transition: transform 0.3s ease-out;
-      }
-
-      .card a:hover::after {
-        transform: scaleX(1);
-        transform-origin: bottom left;
-      }
-
-      #scroll-to-top {
-        position: fixed;
-        right: 420px;
-        /* Position it next to the right sidebar */
-        bottom: 20px;
-        width: 40px;
-        height: 40px;
-        background-color: #2196F3;
-        color: white;
-        border: none;
-        border-radius: 50%;
-        cursor: pointer;
-        display: none;
-        /* Hidden by default */
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-        transition: all 0.3s ease;
-        z-index: 1000;
-      }
-
-      #scroll-to-top:hover {
-        background-color: #1976D2;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-      }
-
-      #scroll-to-top.visible {
-        display: flex;
-      }
-
-      #scroll-to-top.sidebar-collapsed {
-        right: 20px;
-      }
-
-      .payout {
-        background: #f7fafc;
-        padding: 8px 12px;
-        border-radius: 6px;
-        display: inline-block;
-        margin: 4px 8px 4px 0;
-        font-size: 0.9rem;
-        color: #2d3748;
-      }
-    </style>
-  </head>
-
-  <body>
-    <div id="app-bar"><img src="logo.webp" alt="Rainplan Logo">
-      <div id="jurisdiction-name">Select a jurisdiction</div>
+    <div class="top-container">
+      <div class="filters-container">
+        <div id="search-container" style=" width: 300px;">
+          <input id="pac-input" type="text" placeholder="Search for a location" style="
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            font-size: 14px;
+            background: white;
+          ">
+        </div>
+        <div class="button filter">See Searches by type</div>
+        <div class="button filter">Property Type</div>
+        <div class="button filter">Technology Type</div>
+      </div>
+      <div class="main button"> Search</div>
     </div>
-    <div id="container">
-      <div id="left-sidebar"></div><button id="toggle-left-sidebar" class="toggle-sidebar">←</button>
-      <div id="map"></div>
-      <div id="right-sidebar"></div><button id="toggle-right-sidebar" class="toggle-sidebar">→</button> <button
-        id="scroll-to-top" title="Scroll to top">↑↑</button>
-    </div>
-    <script>
-      
-      // Event Bus 
-      class EventBus {
-        constructor() {
-          this.events = {};
-        }
 
-        on(event, callback) {
-          if (!this.events[event]) {
-            this.events[event] = [];
-          }
-          this.events[event].push(callback);
-        }
+  </div>
+  <div id="container">
+    <div id="left-sidebar"></div><button id="toggle-left-sidebar" class="toggle-sidebar">←</button>
+    <div id="map"></div>
+    <div id="right-sidebar"></div><button id="toggle-right-sidebar" class="toggle-sidebar">→</button> <button
+      id="scroll-to-top" title="Scroll to top">↑↑</button>
+  </div>
+  <script>
 
-        emit(event, data) {
-          if (this.events[event]) {
-            this.events[event].forEach(callback => callback(data));
-          }
-        }
+    // Event Bus 
+    class EventBus {
+      constructor() {
+        this.events = {};
       }
 
-      // Map class
-      class GMap {
-        constructor(eventBus) {
-          this.eventBus = eventBus;
-          this.map = null;
-          this.polygons = [];
-          this.markers = [];
-          this.activeMarker = null;
-
-          window.onload = () => {
-            this.initMap();
-          };
+      on(event, callback) {
+        if (!this.events[event]) {
+          this.events[event] = [];
         }
+        this.events[event].push(callback);
+      }
 
-        initMap() {
-          this.map = new google.maps.Map(document.getElementById("map"), {
-            zoom: 4,
-            center: { lat: 39, lng: -94 },
-            mapId: '8f348c2f6c51a2e',
+      emit(event, data) {
+        if (this.events[event]) {
+          this.events[event].forEach(callback => callback(data));
+        }
+      }
+    }
+
+    // Map class
+    class GMap {
+      constructor(eventBus) {
+        this.eventBus = eventBus;
+        this.map = null;
+        this.polygons = [];
+        this.markers = [];
+        this.activeMarker = null;
+
+        window.onload = () => {
+          this.initMap();
+          this.initAutocomplete();
+        };
+      }
+
+      initMap() {
+        this.map = new google.maps.Map(document.getElementById("map"), {
+          zoom: 4,
+          center: { lat: 39, lng: -94 },
+          mapId: '8f348c2f6c51a2e',
+        });
+
+        fetch("localData.json")
+          .then(response => response.json())
+          .then(data => this.loadPolygons(data));
+      }
+
+      initAutocomplete() {
+        const input = document.getElementById('pac-input');
+        const searchBox = new google.maps.places.SearchBox(input);
+
+        //this.map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
+
+        this.map.addListener('bounds_changed', () => {
+          searchBox.setBounds(this.map.getBounds());
+        });
+
+        searchBox.addListener('places_changed', () => {
+          const places = searchBox.getPlaces();
+
+          if (places.length === 0) {
+            return;
+          }
+
+          const bounds = new google.maps.LatLngBounds();
+          places.forEach(place => {
+            if (!place.geometry || !place.geometry.location) {
+              console.log("Returned place contains no geometry");
+              return;
+            }
+
+            if (place.geometry.viewport) {
+              bounds.union(place.geometry.viewport);
+            } else {
+              bounds.extend(place.geometry.location);
+            }
+          });
+          this.map.fitBounds(bounds);
+        });
+      }
+
+      loadPolygons(data) {
+        data.features.forEach(feature => {
+          const polygon = new google.maps.Polygon({
+            paths: feature.geometry.coordinates[0].map(coord => ({ lat: coord[1], lng: coord[0] })),
+            map: this.map,
+            fillColor: '#2196F3',
+            fillOpacity: 0.3,
+            strokeColor: '#1976D2',
+            strokeWeight: 1
           });
 
-          fetch("localData.json")
-            .then(response => response.json())
-            .then(data => this.loadPolygons(data));
-        }
+          polygon.esri_id = feature.properties.esri_id;
+          polygon.name = feature.properties.name;
 
-        loadPolygons(data) {
-          data.features.forEach(feature => {
-            const polygon = new google.maps.Polygon({
-              paths: feature.geometry.coordinates[0].map(coord => ({ lat: coord[1], lng: coord[0] })),
-              map: this.map,
-              fillColor: '#2196F3',
-              fillOpacity: 0.3,
-              strokeColor: '#1976D2',
-              strokeWeight: 1
-            });
+          polygon.addListener('click', () => this.handlePolygonClick(polygon));
 
-            polygon.esri_id = feature.properties.esri_id;
-            polygon.name = feature.properties.name;
+          this.polygons.push(polygon);
+        });
+      }
 
-            polygon.addListener('click', () => this.handlePolygonClick(polygon));
+      handlePolygonClick(polygon) {
+        this.polygons.forEach(p => p.setOptions({ fillColor: '#2196F3', fillOpacity: 0.3 }));
+        polygon.setOptions({ fillColor: '#4CAF50', fillOpacity: 0.5 });
+        this.eventBus.emit('polygonClicked', { polygon });
+      }
 
-            this.polygons.push(polygon);
+      loadParcels(parcelsData) {
+        this.markers.forEach(marker => marker.setMap(null));
+        this.markers = [];
+
+        parcelsData.feature_parcels.features.forEach(feature => {
+          const marker = new google.maps.Marker({
+            position: { lat: feature.geometry.coordinates[1], lng: feature.geometry.coordinates[0] },
+            map: this.map,
+            title: feature.properties.name,
+            parcelType: feature.properties.type,
+            parcelId: feature.properties.id,
+            icon: this.getMarkerIcon(feature.properties.type)
           });
-        }
 
-        handlePolygonClick(polygon) {
-          this.polygons.forEach(p => p.setOptions({ fillColor: '#2196F3', fillOpacity: 0.3 }));
-          polygon.setOptions({ fillColor: '#4CAF50', fillOpacity: 0.5 });
-          this.eventBus.emit('polygonClicked', { polygon });
-        }
+          marker.addListener('click', () => this.handleMarkerClick(marker));
 
-        loadParcels(parcelsData) {
-          this.markers.forEach(marker => marker.setMap(null));
-          this.markers = [];
+          this.markers.push(marker);
+        });
+      }
 
-          parcelsData.feature_parcels.features.forEach(feature => {
-            const marker = new google.maps.Marker({
-              position: { lat: feature.geometry.coordinates[1], lng: feature.geometry.coordinates[0] },
-              map: this.map,
-              title: feature.properties.name,
-              parcelType: feature.properties.type,
-              parcelId: feature.properties.id,
-              icon: this.getMarkerIcon(feature.properties.type)
-            });
+      handleMarkerClick(marker) {
+        this.eventBus.emit('markerClicked', { parcelId: marker.get('parcelId') });
 
-            marker.addListener('click', () => this.handleMarkerClick(marker));
+        this.resetMarkers();
+        marker.setIcon(this.getHighlightedMarkerIcon(marker.get('parcelType')));
+        this.activeMarker = marker;
+      }
 
-            this.markers.push(marker);
-          });
-        }
-
-        handleMarkerClick(marker) {
-          this.eventBus.emit('markerClicked', { parcelId: marker.get('parcelId') });
-
+      highlightMarkerById(parcelId) {
+        const marker = this.markers.find(marker => marker.get('parcelId') === parcelId);
+        if (marker) {
           this.resetMarkers();
           marker.setIcon(this.getHighlightedMarkerIcon(marker.get('parcelType')));
           this.activeMarker = marker;
         }
+      }
 
-        highlightMarkerById(parcelId) {
-          const marker = this.markers.find(marker => marker.get('parcelId') === parcelId);
-          if (marker) {
-            this.resetMarkers();
-            marker.setIcon(this.getHighlightedMarkerIcon(marker.get('parcelType')));
-            this.activeMarker = marker;
-          }
-        }
-
-        resetMarkers() {
-          if (this.activeMarker) {
-            this.activeMarker.setIcon(this.getMarkerIcon(this.activeMarker.get('parcelType')));
-            this.activeMarker = null;
-          }
-        }
-
-        getMarkerIcon(type) {
-          return {
-            path: google.maps.SymbolPath.CIRCLE,
-            fillColor: this.getMarkerColor(type),
-            fillOpacity: 1,
-            strokeWeight: 2,
-            strokeColor: '#FFFFFF',
-            strokeOpacity: 0.7,
-            scale: 7
-          };
-        }
-
-        getHighlightedMarkerIcon(type) {
-          return {
-            path: google.maps.SymbolPath.CIRCLE,
-            fillColor: this.getMarkerColor(type),
-            fillOpacity: 1,
-            strokeWeight: 3,
-            strokeColor: '#FFFFFF',
-            strokeOpacity: 0.9,
-            scale: 11
-          };
-        }
-
-        getMarkerColor(type) {
-          switch (type) {
-            case 'searched':
-              return '#FFA500'; // Orange
-            case 'engaged':
-              return '#4CAF50'; // Green
-            case 'claimed':
-              return '#2196F3'; // Blue
-            default:
-              return '#808080'; // Gray
-          }
+      resetMarkers() {
+        if (this.activeMarker) {
+          this.activeMarker.setIcon(this.getMarkerIcon(this.activeMarker.get('parcelType')));
+          this.activeMarker = null;
         }
       }
 
-      // UI class
-      class UI {
-        constructor(eventBus) {
-          this.eventBus = eventBus;
-          this.leftSidebar = document.getElementById('left-sidebar');
-          this.rightSidebar = document.getElementById('right-sidebar');
-          this.leftToggleButton = document.getElementById('toggle-left-sidebar');
-          this.rightToggleButton = document.getElementById('toggle-right-sidebar');
-          this.scrollButton = document.getElementById('scroll-to-top');
-          this.jurisdictionName = document.getElementById('jurisdiction-name');
+      getMarkerIcon(type) {
+        return {
+          path: google.maps.SymbolPath.CIRCLE,
+          fillColor: this.getMarkerColor(type),
+          fillOpacity: 1,
+          strokeWeight: 2,
+          strokeColor: '#FFFFFF',
+          strokeOpacity: 0.7,
+          scale: 7
+        };
+      }
 
-          this.initUI();
-          this.initEventListeners();
+      getHighlightedMarkerIcon(type) {
+        return {
+          path: google.maps.SymbolPath.CIRCLE,
+          fillColor: this.getMarkerColor(type),
+          fillOpacity: 1,
+          strokeWeight: 3,
+          strokeColor: '#FFFFFF',
+          strokeOpacity: 0.9,
+          scale: 11
+        };
+      }
+
+      getMarkerColor(type) {
+        switch (type) {
+          case 'searched':
+            return '#FFA500'; // Orange
+          case 'engaged':
+            return '#4CAF50'; // Green
+          case 'claimed':
+            return '#2196F3'; // Blue
+          default:
+            return '#808080'; // Gray
         }
+      }
+    }
 
-        initUI() {
-          this.leftSidebar.style.display = 'none';
-          this.rightSidebar.style.display = 'none';
-          this.leftToggleButton.style.display = 'none';
-          this.rightToggleButton.style.display = 'none';
-        }
+    // UI class
+    class UI {
+      constructor(eventBus) {
+        this.eventBus = eventBus;
+        this.leftSidebar = document.getElementById('left-sidebar');
+        this.rightSidebar = document.getElementById('right-sidebar');
+        this.leftToggleButton = document.getElementById('toggle-left-sidebar');
+        this.rightToggleButton = document.getElementById('toggle-right-sidebar');
+        this.scrollButton = document.getElementById('scroll-to-top');
+        // this.jurisdictionName = document.getElementById('jurisdiction-name');
 
-        initEventListeners() {
-          this.leftToggleButton.addEventListener('click', () => this.toggleSidebar(this.leftSidebar));
-          this.rightToggleButton.addEventListener('click', () => this.toggleSidebar(this.rightSidebar));
-          this.scrollButton.addEventListener('click', () => this.scrollToTop());
-          this.rightSidebar.addEventListener('scroll', () => {
-            if (this.rightSidebar.scrollTop > 300) {
-              this.scrollButton.classList.add('visible');
-            } else {
-              this.scrollButton.classList.remove('visible');
-            }
-          });
-        }
+        this.initUI();
+        this.initEventListeners();
+      }
 
-        toggleSidebar(sidebar) {
-          sidebar.classList.toggle('collapsed');
-          if (sidebar === this.leftSidebar) {
-            this.leftToggleButton.textContent = sidebar.classList.contains('collapsed') ? '→' : '←';
-          } else if (sidebar === this.rightSidebar) {
-            this.rightToggleButton.textContent = sidebar.classList.contains('collapsed') ? '←' : '→';
+      initUI() {
+        this.leftSidebar.style.display = 'none';
+        this.rightSidebar.style.display = 'none';
+        this.leftToggleButton.style.display = 'none';
+        this.rightToggleButton.style.display = 'none';
+      }
+
+      initEventListeners() {
+        this.leftToggleButton.addEventListener('click', () => this.toggleSidebar(this.leftSidebar));
+        this.rightToggleButton.addEventListener('click', () => this.toggleSidebar(this.rightSidebar));
+        this.scrollButton.addEventListener('click', () => this.scrollToTop());
+        this.rightSidebar.addEventListener('scroll', () => {
+          if (this.rightSidebar.scrollTop > 300) {
+            this.scrollButton.classList.add('visible');
+          } else {
+            this.scrollButton.classList.remove('visible');
           }
-        }
+        });
+      }
 
-        scrollToTop() {
-          this.rightSidebar.scrollTo({ top: 0, behavior: 'smooth' });
+      toggleSidebar(sidebar) {
+        sidebar.classList.toggle('collapsed');
+        if (sidebar === this.leftSidebar) {
+          this.leftToggleButton.textContent = sidebar.classList.contains('collapsed') ? '→' : '←';
+        } else if (sidebar === this.rightSidebar) {
+          this.rightToggleButton.textContent = sidebar.classList.contains('collapsed') ? '←' : '→';
         }
+      }
 
-        displayIncentives(incentives) {
-          this.leftSidebar.innerHTML = '';
-          incentives.forEach(incentive => {
-            const card = document.createElement('div');
-            card.className = 'card';
-            card.innerHTML = `
+      scrollToTop() {
+        this.rightSidebar.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      displayIncentives(incentives) {
+        this.leftSidebar.innerHTML = '';
+        incentives.forEach(incentive => {
+          const card = document.createElement('div');
+          card.className = 'card';
+          card.innerHTML = `
               ${incentive.logo_url ? `<img src="${incentive.logo_url}" alt="${incentive.name} logo">` : ''}
               <h3>${incentive.name}</h3>
               <p>${incentive.summary}</p>
@@ -797,178 +618,178 @@
               ${incentive.max_payout ? `<p>Max payout: ${incentive.max_payout}</p>` : ''}
               <a href="${incentive.link}" target="_blank">Learn More</a>
             `;
-            this.leftSidebar.appendChild(card);
-          });
-        }
+          this.leftSidebar.appendChild(card);
+        });
+      }
 
-        displayParcels(parcelsData, name) {
-          this.rightSidebar.innerHTML = '';
-          this.jurisdictionName.textContent = name;
+      displayParcels(parcelsData, name) {
+        this.rightSidebar.innerHTML = '';
+        // this.jurisdictionName.textContent = name;
 
-          const filterSection = document.createElement('div');
-          filterSection.className = 'filter-section';
-          filterSection.innerHTML = '<h3>Filter Parcels</h3>';
+        const filterSection = document.createElement('div');
+        filterSection.className = 'filter-section';
+        filterSection.innerHTML = '<h3>Filter Parcels</h3>';
 
-          const parcelCounts = {
-            searched: 0,
-            engaged: 0,
-            claimed: 0
-          };
+        const parcelCounts = {
+          searched: 0,
+          engaged: 0,
+          claimed: 0
+        };
 
-          parcelsData.feature_parcels.features.forEach(parcel => {
-            if (parcelCounts.hasOwnProperty(parcel.properties.type)) {
-              parcelCounts[parcel.properties.type]++;
-            }
-          });
+        parcelsData.feature_parcels.features.forEach(parcel => {
+          if (parcelCounts.hasOwnProperty(parcel.properties.type)) {
+            parcelCounts[parcel.properties.type]++;
+          }
+        });
 
-          const types = ['searched', 'engaged', 'claimed'];
-          types.forEach(type => {
-            const label = document.createElement('label');
-            const checkbox = document.createElement('input');
-            checkbox.type = 'checkbox';
-            checkbox.checked = true;
-            checkbox.value = type;
+        const types = ['searched', 'engaged', 'claimed'];
+        types.forEach(type => {
+          const label = document.createElement('label');
+          const checkbox = document.createElement('input');
+          checkbox.type = 'checkbox';
+          checkbox.checked = true;
+          checkbox.value = type;
 
-            const colorIndicator = document.createElement('span');
-            colorIndicator.className = 'color-indicator';
-            colorIndicator.style.backgroundColor = this.getMarkerColor(type);
+          const colorIndicator = document.createElement('span');
+          colorIndicator.className = 'color-indicator';
+          colorIndicator.style.backgroundColor = this.getMarkerColor(type);
 
-            checkbox.addEventListener('change', () => this.filterParcels());
+          checkbox.addEventListener('change', () => this.filterParcels());
 
-            label.appendChild(checkbox);
-            label.appendChild(colorIndicator);
-            label.appendChild(document.createTextNode(`${type.charAt(0).toUpperCase() + type.slice(1)} (${parcelCounts[type]})`));
-            filterSection.appendChild(label);
-          });
+          label.appendChild(checkbox);
+          label.appendChild(colorIndicator);
+          label.appendChild(document.createTextNode(`${type.charAt(0).toUpperCase() + type.slice(1)} (${parcelCounts[type]})`));
+          filterSection.appendChild(label);
+        });
 
-          const searchBox = document.createElement('input');
-          searchBox.type = 'text';
-          searchBox.className = 'search-box';
-          searchBox.placeholder = 'Search parcels by name...';
-          searchBox.addEventListener('input', () => this.filterParcels());
+        const searchBox = document.createElement('input');
+        searchBox.type = 'text';
+        searchBox.className = 'search-box';
+        searchBox.placeholder = 'Search parcels by name...';
+        searchBox.addEventListener('input', () => this.filterParcels());
 
-          filterSection.appendChild(searchBox);
-          this.rightSidebar.appendChild(filterSection);
+        filterSection.appendChild(searchBox);
+        this.rightSidebar.appendChild(filterSection);
 
-          parcelsData.feature_parcels.features.forEach(parcel => {
-            const card = document.createElement('div');
-            card.className = 'parcel-card';
-            card.dataset.parcelId = parcel.properties.id;
-            card.innerHTML = `
+        parcelsData.feature_parcels.features.forEach(parcel => {
+          const card = document.createElement('div');
+          card.className = 'parcel-card';
+          card.dataset.parcelId = parcel.properties.id;
+          card.innerHTML = `
             <h3>ID: ${parcel.properties.id}</h3>
             <p>Name: ${parcel.properties.name}</p>
             <p>Type: ${parcel.properties.type}</p>
           `;
 
-            const typeIndicator = document.createElement('div');
-            typeIndicator.className = 'parcel-type-indicator';
-            typeIndicator.style.backgroundColor = this.getMarkerColor(parcel.properties.type);
-            card.appendChild(typeIndicator);
+          const typeIndicator = document.createElement('div');
+          typeIndicator.className = 'parcel-type-indicator';
+          typeIndicator.style.backgroundColor = this.getMarkerColor(parcel.properties.type);
+          card.appendChild(typeIndicator);
 
-            card.addEventListener('click', () => this.eventBus.emit('parcelCardClicked', { parcelId: parcel.properties.id }));
+          card.addEventListener('click', () => this.eventBus.emit('parcelCardClicked', { parcelId: parcel.properties.id }));
 
-            this.rightSidebar.appendChild(card);
-          });
+          this.rightSidebar.appendChild(card);
+        });
 
-          this.leftSidebar.style.display = 'block';
-          this.rightSidebar.style.display = 'block';
-          this.leftToggleButton.style.display = 'block';
-          this.rightToggleButton.style.display = 'block';
-        }
+        this.leftSidebar.style.display = 'block';
+        this.rightSidebar.style.display = 'block';
+        this.leftToggleButton.style.display = 'block';
+        this.rightToggleButton.style.display = 'block';
+      }
 
-        filterParcels() {
-          const activeFilters = [];
-          const checkboxes = document.querySelectorAll('#right-sidebar .filter-section input[type="checkbox"]:checked');
-          checkboxes.forEach(checkbox => activeFilters.push(checkbox.value));
+      filterParcels() {
+        const activeFilters = [];
+        const checkboxes = document.querySelectorAll('#right-sidebar .filter-section input[type="checkbox"]:checked');
+        checkboxes.forEach(checkbox => activeFilters.push(checkbox.value));
 
-          const searchTerm = document.querySelector('#right-sidebar .filter-section .search-box').value.toLowerCase();
+        const searchTerm = document.querySelector('#right-sidebar .filter-section .search-box').value.toLowerCase();
+        const cards = document.querySelectorAll('.parcel-card');
+        cards.forEach(card => {
+          const parcelId = card.dataset.parcelId;
+          const parcelType = card.querySelector('p:nth-child(3)').textContent.split(': ')[1];
+          const parcelName = card.querySelector('p:nth-child(2)').textContent.toLowerCase();
 
-          const cards = document.querySelectorAll('.parcel-card');
-          cards.forEach(card => {
-            const parcelId = card.dataset.parcelId;
-            const parcelType = card.querySelector('p:nth-child(3)').textContent.split(': ')[1];
-            const parcelName = card.querySelector('p:nth-child(2)').textContent.toLowerCase();
-
-            if (activeFilters.includes(parcelType) && parcelName.includes(searchTerm)) {
-              card.style.display = 'block';
-            } else {
-              card.style.display = 'none';
-            }
-          });
-        }
-
-        highlightParcelCard(parcelId) {
-          const cards = document.querySelectorAll('.parcel-card');
-          cards.forEach(card => {
-            if (+card.dataset.parcelId === +parcelId) {
-              card.classList.add('highlighted');
-              card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            } else {
-              card.classList.remove('highlighted');
-            }
-          });
-        }
-
-        getMarkerColor(type) {
-          switch (type) {
-            case 'searched':
-              return '#FFA500'; // Orange
-            case 'engaged':
-              return '#4CAF50'; // Green
-            case 'claimed':
-              return '#2196F3'; // Blue
-            default:
-              return '#808080'; // Gray
+          if (activeFilters.includes(parcelType) && parcelName.includes(searchTerm)) {
+            card.style.display = 'block';
+          } else {
+            card.style.display = 'none';
           }
+        });
+
+        console.log('',);
+
+      }
+
+      highlightParcelCard(parcelId) {
+        const cards = document.querySelectorAll('.parcel-card');
+        cards.forEach(card => {
+          if (+card.dataset.parcelId === +parcelId) {
+            card.classList.add('highlighted');
+            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          } else {
+            card.classList.remove('highlighted');
+          }
+        });
+      }
+
+      getMarkerColor(type) {
+        switch (type) {
+          case 'searched':
+            return '#FFA500'; // Orange
+          case 'engaged':
+            return '#4CAF50'; // Green
+          case 'claimed':
+            return '#2196F3'; // Blue
+          default:
+            return '#808080'; // Gray
         }
       }
+    }
 
-      // Main function
-      function initMap() {
-        const eventBus = new EventBus();
+    // Main function
+    function initMap() {
+      const eventBus = new EventBus();
 
-        const mapObj = new GMap(eventBus);
-        const ui = new UI(eventBus);
+      const mapObj = new GMap(eventBus);
+      const ui = new UI(eventBus);
 
-        eventBus.on('polygonClicked', data => {
-          console.log('eventBus polygonClicked', data);
+      eventBus.on('polygonClicked', data => {
+        console.log('eventBus polygonClicked', data);
 
-          const { esri_id } = data.polygon;
-          //load new data
-          fetch(`https://api.rainplan.com/api:IME/incentive_by_esri_id?esri_id=${esri_id}`)
-            .then(response => response.json())
-            .then(incentives => {
-              ui.displayIncentives(data.incentives);
-            });
+        const { esri_id } = data.polygon;
+        //load new data
+        fetch(`https://api.rainplan.com/api:IME/incentive_by_esri_id?esri_id=${esri_id}`)
+          .then(response => response.json())
+          .then(incentives => {
+            ui.displayIncentives(data.incentives);
+          });
 
-          fetch(`https://api.rainplan.com/api:IME/jurisdiction_parcels_geojson?esri_id=${esri_id}`)
-            .then(response => response.json())
-            .then(parcelsData => {
-              console.log('parcelsData', parcelsData);
-              // m.loadParcels(parcelsData)
-              mapObj.loadParcels(parcelsData);
-              ui.displayParcels(parcelsData, data.name);
-            });
+        fetch(`https://api.rainplan.com/api:IME/jurisdiction_parcels_geojson?esri_id=${esri_id}`)
+          .then(response => response.json())
+          .then(parcelsData => {
+            console.log('parcelsData', parcelsData);
+            // m.loadParcels(parcelsData)
+            mapObj.loadParcels(parcelsData);
+            ui.displayParcels(parcelsData, data.name);
+          });
 
-        });
+      });
 
-        eventBus.on('parcelCardClicked', data => {
-          console.log('eventBus parcelCardClicked', data);
-          eventBus.emit('markerClicked', { parcelId: data.parcelId });
-          mapObj.highlightMarkerById(data.parcelId);
-        });
+      eventBus.on('parcelCardClicked', data => {
+        console.log('eventBus parcelCardClicked', data);
+        eventBus.emit('markerClicked', { parcelId: data.parcelId });
+        mapObj.highlightMarkerById(data.parcelId);
+      });
 
-        eventBus.on('markerClicked', data => {
-          console.log('eventBus markerClicked', data);
-          ui.highlightParcelCard(data.parcelId);
+      eventBus.on('markerClicked', data => {
+        console.log('eventBus markerClicked', data);
+        ui.highlightParcelCard(data.parcelId);
+      });
+    }
 
-        });
-      }
+  </script>
 
-      // Run the main function when the window loads
-    </script>
-
-  </html>
+</html>
 </body>
 
 </html>
