@@ -702,15 +702,46 @@
       }
 
       displayParcels(parcelsData, name) {
-        this.rightSidebar.innerHTML = '';
-        
-        this.buildFilters(parcelsData);
-        this.buildParcelCards(parcelsData);
+        console.log('displayParcels', parcelsData);
+        // Initialize filters only if they haven't been created yet
+        if (!this.filtersInitialized) {
+          this.buildFilters(parcelsData);
+          this.filtersInitialized = true;
+        } else {
+          // Update filter counts only
+          this.updateFilterCounts(parcelsData);
+        }
+
+        // Always update the parcel cards
+        this.updateParcelCards(parcelsData);
+        this.filterParcels();
 
         this.leftSidebar.style.display = 'block';
         this.rightSidebar.style.display = 'block';
         this.leftToggleButton.style.display = 'block';
         this.rightToggleButton.style.display = 'block';
+      }
+
+      updateFilterCounts(parcelsData) {
+        const parcelCounts = {
+          searched: 0,
+          engaged: 0,
+          claimed: 0
+        };
+
+        parcelsData.feature_parcels.features.forEach(parcel => {
+          if (parcelCounts.hasOwnProperty(parcel.properties.type)) {
+            parcelCounts[parcel.properties.type]++;
+          }
+        });
+
+        // Update the count in each filter label
+        const labels = document.querySelectorAll('.filter-section label');
+        labels.forEach(label => {
+          const type = label.querySelector('input').value;
+          const text = label.lastChild;
+          text.textContent = ` ${type.charAt(0).toUpperCase() + type.slice(1)} (${parcelCounts[type]})`;
+        });
       }
 
       buildFilters(parcelsData) {
@@ -758,7 +789,6 @@
 
         filterSection.appendChild(searchBox);
 
-        // Add viewport filter checkbox
         const viewportFilter = document.createElement('label');
         viewportFilter.style.marginTop = '16px';
         viewportFilter.style.display = 'block';
@@ -778,7 +808,12 @@
         this.rightSidebar.appendChild(filterSection);
       }
 
-      buildParcelCards(parcelsData) {
+      updateParcelCards(parcelsData) {
+        // Clear existing parcel cards section
+        const existingParcelCards = document.querySelectorAll('.parcel-card');
+        existingParcelCards.forEach(card => card.remove());
+
+        // Build new parcel cards
         parcelsData.feature_parcels.features.forEach(parcel => {
           const card = document.createElement('div');
           card.className = 'parcel-card';
@@ -909,4 +944,4 @@
   </script>
 
 </html>
-</body> 
+</body>
