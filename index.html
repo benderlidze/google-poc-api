@@ -71,6 +71,7 @@
       display: none;
       /* Hide initially */
       height: 100%;
+      scrollbar-width: none;
     }
 
     #right-sidebar {
@@ -202,9 +203,11 @@
       border-radius: 12px;
       box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
       transition: transform 0.2s, box-shadow 0.2s;
+      cursor: pointer;
     }
 
     .card:hover {
+
       transform: translateY(-2px);
       box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
     }
@@ -623,6 +626,7 @@
       }
 
       displayIncentives(incentives) {
+        console.log('incentives', incentives);
         this.leftSidebar.innerHTML = '';
         incentives.forEach(incentive => {
           const card = document.createElement('div');
@@ -635,6 +639,7 @@
               ${incentive.max_payout ? `<p>Max payout: ${incentive.max_payout}</p>` : ''}
               <a href="${incentive.link}" target="_blank">Learn More</a>
             `;
+          card.addEventListener('click', () => window.open(incentive.link, '_blank'));
           this.leftSidebar.appendChild(card);
         });
       }
@@ -777,7 +782,8 @@
         fetch(`https://api.rainplan.com/api:IME/incentive_by_esri_id?esri_id=${esri_id}`)
           .then(response => response.json())
           .then(incentives => {
-            ui.displayIncentives(data.incentives);
+            console.log('incentives', incentives);
+            ui.displayIncentives(incentives);
           });
 
         fetch(`https://api.rainplan.com/api:IME/jurisdiction_parcels_geojson?esri_id=${esri_id}`)
