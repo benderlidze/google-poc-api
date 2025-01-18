@@ -546,31 +546,6 @@
         });
       }
 
-      // applyFilters() {
-      //   const filteredMarkers = this.getMarkersMatchingFilters(
-      //     this.filterParcelsValues || [],
-      //     this.searchTerm || ''
-      //   );
-
-      //   const viewportMarkers = this.getMarkersInViewport();
-
-      //   const filteredSet = new Set(filteredMarkers);
-      //   const viewportSet = new Set(viewportMarkers);
-
-      //   this.markers.forEach(marker => marker.setMap(null));
-
-      //   this.markers.forEach(marker => {
-      //     if (filteredSet.has(marker) && viewportSet.has(marker)) {
-      //       marker.setMap(this.map);
-      //     }
-      //   });
-
-      //   const visibleMarkers = this.markers.filter(m => m.getMap() !== null);
-      //   this.eventBus.emit('viewportFiltered', {
-      //     visibleParcels: visibleMarkers.map(m => m.get('parcelId'))
-      //   });
-      // }
-
       applyFilters() {
         const filteredMarkers = this.getMarkersMatchingFilters(
           this.filterParcelsValues || [],
@@ -728,8 +703,17 @@
 
       displayParcels(parcelsData, name) {
         this.rightSidebar.innerHTML = '';
-        // this.jurisdictionName.textContent = name;
+        
+        this.buildFilters(parcelsData);
+        this.buildParcelCards(parcelsData);
 
+        this.leftSidebar.style.display = 'block';
+        this.rightSidebar.style.display = 'block';
+        this.leftToggleButton.style.display = 'block';
+        this.rightToggleButton.style.display = 'block';
+      }
+
+      buildFilters(parcelsData) {
         const filterSection = document.createElement('div');
         filterSection.className = 'filter-section';
         filterSection.innerHTML = '<h3>Filter Parcels</h3>';
@@ -773,7 +757,6 @@
         searchBox.addEventListener('input', () => this.filterParcels());
 
         filterSection.appendChild(searchBox);
-        this.rightSidebar.appendChild(filterSection);
 
         // Add viewport filter checkbox
         const viewportFilter = document.createElement('label');
@@ -792,7 +775,10 @@
         });
 
         filterSection.appendChild(viewportFilter);
+        this.rightSidebar.appendChild(filterSection);
+      }
 
+      buildParcelCards(parcelsData) {
         parcelsData.feature_parcels.features.forEach(parcel => {
           const card = document.createElement('div');
           card.className = 'parcel-card';
@@ -812,11 +798,6 @@
 
           this.rightSidebar.appendChild(card);
         });
-
-        this.leftSidebar.style.display = 'block';
-        this.rightSidebar.style.display = 'block';
-        this.leftToggleButton.style.display = 'block';
-        this.rightToggleButton.style.display = 'block';
       }
 
       filterParcels() {
@@ -928,4 +909,4 @@
   </script>
 
 </html>
-</body>
+</body> 
