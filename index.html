@@ -401,6 +401,10 @@
         this.polygons = [];
         this.markers = [];
         this.activeMarker = null;
+        this.viewportEnabled = false;
+
+        this.filterParcelsValues = [];
+        this.searchTerm = null;
 
         window.onload = () => {
           this.initMap();
@@ -413,6 +417,13 @@
           zoom: 4,
           center: { lat: 39, lng: -94 },
           mapId: '8f348c2f6c51a2e',
+        });
+
+        // Add viewport change listener
+        this.map.addListener('idle', () => {
+          if (this.viewportEnabled) {
+            this.filterParcelsByViewport();
+          }
         });
 
         fetch("localData.json")
@@ -517,17 +528,88 @@
         }
       }
 
-      filterParcels(activeFilters, searchTerm) {
-        this.markers.forEach(marker => {
+      getMarkersMatchingFilters(activeFilters, searchTerm) {
+        return this.markers.filter(marker => {
           const parcelType = marker.get('parcelType');
           const parcelName = marker.getTitle().toLowerCase();
-
-          if (activeFilters.includes(parcelType) && parcelName.includes(searchTerm)) {
-            marker.setMap(this.map);
-          } else {
-            marker.setMap(null);
-          }
+          return activeFilters.includes(parcelType) && parcelName.includes(searchTerm);
         });
+      }
+
+      getMarkersInViewport() {
+        const bounds = this.map.getBounds();
+        if (!bounds || !this.viewportEnabled) return this.markers;
+
+        return this.markers.filter(marker => {
+          const position = marker.getPosition();
+          return bounds.contains(position);
+        });
+      }
+
+      // applyFilters() {
+      //   const filteredMarkers = this.getMarkersMatchingFilters(
+      //     this.filterParcelsValues || [],
+      //     this.searchTerm || ''
+      //   );
+
+      //   const viewportMarkers = this.getMarkersInViewport();
+
+      //   const filteredSet = new Set(filteredMarkers);
+      //   const viewportSet = new Set(viewportMarkers);
+
+      //   this.markers.forEach(marker => marker.setMap(null));
+
+      //   this.markers.forEach(marker => {
+      //     if (filteredSet.has(marker) && viewportSet.has(marker)) {
+      //       marker.setMap(this.map);
+      //     }
+      //   });
+
+      //   const visibleMarkers = this.markers.filter(m => m.getMap() !== null);
+      //   this.eventBus.emit('viewportFiltered', {
+      //     visibleParcels: visibleMarkers.map(m => m.get('parcelId'))
+      //   });
+      // }
+
+      applyFilters() {
+        const filteredMarkers = this.getMarkersMatchingFilters(
+          this.filterParcelsValues || [],
+          this.searchTerm || ''
+        );
+
+        const viewportMarkers = this.getMarkersInViewport();
+
+        // Create sets for efficient look-up
+        const filteredSet = new Set(filteredMarkers);
+        const viewportSet = new Set(viewportMarkers);
+
+        // Update visibility of each marker
+        this.markers.forEach(marker => {
+          const isVisible = filteredSet.has(marker) && viewportSet.has(marker);
+          marker.setVisible(isVisible);
+        });
+
+        // Collect visible parcel IDs
+        const visibleParcels = this.markers
+          .filter(m => m.getVisible())
+          .map(m => m.get('parcelId'));
+
+        this.eventBus.emit('viewportFiltered', { visibleParcels });
+      }
+
+      filterParcels(activeFilters, searchTerm) {
+        this.filterParcelsValues = activeFilters;
+        this.searchTerm = searchTerm;
+        this.applyFilters();
+      }
+
+      filterParcelsByViewport() {
+        this.applyFilters();
+      }
+
+      setViewportFilter(enabled) {
+        this.viewportEnabled = enabled;
+        this.applyFilters();
       }
 
       resetMarkers() {
@@ -693,6 +775,24 @@
         filterSection.appendChild(searchBox);
         this.rightSidebar.appendChild(filterSection);
 
+        // Add viewport filter checkbox
+        const viewportFilter = document.createElement('label');
+        viewportFilter.style.marginTop = '16px';
+        viewportFilter.style.display = 'block';
+
+        const viewportCheckbox = document.createElement('input');
+        viewportCheckbox.type = 'checkbox';
+        viewportCheckbox.checked = false;
+
+        viewportFilter.appendChild(viewportCheckbox);
+        viewportFilter.appendChild(document.createTextNode('Show only parcels in viewport'));
+
+        viewportCheckbox.addEventListener('change', (e) => {
+          this.eventBus.emit('viewportFilterToggled', { enabled: e.target.checked });
+        });
+
+        filterSection.appendChild(viewportFilter);
+
         parcelsData.feature_parcels.features.forEach(parcel => {
           const card = document.createElement('div');
           card.className = 'parcel-card';
@@ -771,7 +871,6 @@
     // Main function
     function initMap() {
       const eventBus = new EventBus();
-
       const mapObj = new GMap(eventBus);
       const ui = new UI(eventBus);
 
@@ -810,6 +909,19 @@
       eventBus.on('filterParcels', data => {
         console.log('eventBus filterParcels', data);
         mapObj.filterParcels(data.activeFilters, data.searchTerm);
+      });
+
+      eventBus.on('viewportFilterToggled', data => {
+        mapObj.setViewportFilter(data.enabled);
+      });
+
+      eventBus.on('viewportFiltered', data => {
+        // Optionally update UI to show only visible parcels
+        const cards = document.querySelectorAll('.parcel-card');
+        cards.forEach(card => {
+          const parcelId = parseInt(card.dataset.parcelId);
+          card.style.display = data.visibleParcels.includes(parcelId) ? 'block' : 'none';
+        });
       });
     }
 
