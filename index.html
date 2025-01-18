@@ -29,7 +29,8 @@
       align-items: center;
 
       z-index: 1000;
-      height: 80px; /* Set fixed height for app-bar */
+      height: 80px;
+      /* Set fixed height for app-bar */
       display: flex;
       flex-direction: row;
       justify-content: space-between;
@@ -50,12 +51,14 @@
 
     #container {
       display: flex;
-      height: calc(100vh - 80px); /* Subtract app-bar height from viewport height */
+      height: calc(100vh - 80px);
+      /* Subtract app-bar height from viewport height */
     }
 
     #map {
       flex: 1;
-      height: 100%; /* Will fill container height */
+      height: 100%;
+      /* Will fill container height */
     }
 
     #left-sidebar {
@@ -510,6 +513,19 @@
         }
       }
 
+      filterParcels(activeFilters, searchTerm) {
+        this.markers.forEach(marker => {
+          const parcelType = marker.get('parcelType');
+          const parcelName = marker.getTitle().toLowerCase();
+
+          if (activeFilters.includes(parcelType) && parcelName.includes(searchTerm)) {
+            marker.setMap(this.map);
+          } else {
+            marker.setMap(null);
+          }
+        });
+      }
+
       resetMarkers() {
         if (this.activeMarker) {
           this.activeMarker.setIcon(this.getMarkerIcon(this.activeMarker.get('parcelType')));
@@ -714,6 +730,8 @@
             card.style.display = 'none';
           }
         });
+
+        this.eventBus.emit('filterParcels', { activeFilters, searchTerm });
       }
 
       highlightParcelCard(parcelId) {
@@ -780,6 +798,11 @@
       eventBus.on('markerClicked', data => {
         console.log('eventBus markerClicked', data);
         ui.highlightParcelCard(data.parcelId);
+      });
+
+      eventBus.on('filterParcels', data => {
+        console.log('eventBus filterParcels', data);
+        mapObj.filterParcels(data.activeFilters, data.searchTerm);
       });
     }
 
