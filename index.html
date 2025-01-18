@@ -94,7 +94,8 @@
     }
 
     .toggle-sidebar {
-      position: absolute;
+      position: fixed;
+      /* Change from absolute to fixed */
       top: 50%;
       transform: translateY(-50%);
       z-index: 1000;
@@ -105,11 +106,11 @@
       box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
       transition: all 0.3s ease;
       display: none;
-      /* Hide initially */
     }
 
     #toggle-left-sidebar {
-      left: 410px;
+      left: 400px;
+      /* Match the sidebar width */
       border-radius: 0 4px 4px 0;
     }
 
@@ -610,8 +611,10 @@
         sidebar.classList.toggle('collapsed');
         if (sidebar === this.leftSidebar) {
           this.leftToggleButton.textContent = sidebar.classList.contains('collapsed') ? '→' : '←';
+          this.leftToggleButton.style.left = sidebar.classList.contains('collapsed') ? '0' : '400px';
         } else if (sidebar === this.rightSidebar) {
           this.rightToggleButton.textContent = sidebar.classList.contains('collapsed') ? '←' : '→';
+          this.rightToggleButton.style.right = sidebar.classList.contains('collapsed') ? '0' : '400px';
         }
       }
 
@@ -769,7 +772,6 @@
 
       eventBus.on('polygonClicked', data => {
         console.log('eventBus polygonClicked', data);
-
         const { esri_id } = data.polygon;
         //load new data
         fetch(`https://api.rainplan.com/api:IME/incentive_by_esri_id?esri_id=${esri_id}`)
@@ -786,7 +788,6 @@
             mapObj.loadParcels(parcelsData);
             ui.displayParcels(parcelsData, data.name);
           });
-
       });
 
       eventBus.on('parcelCardClicked', data => {
