@@ -332,9 +332,47 @@
       user-select: none;
     }
 
+    .button:hover {
+      background-color: #d6e7ff;
+    }
+
     .button.main {
       background-color: #195bbc;
       color: white;
+    }
+
+    .dropdown {
+      position: absolute;
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      padding: 8px;
+      display: none;
+      z-index: 1000;
+      margin-top: 4px;
+      min-width: 200px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .dropdown.show {
+      display: block;
+    }
+
+    .dropdown label {
+      display: block;
+      padding: 6px 8px;
+      margin: 2px 0;
+      cursor: pointer;
+    }
+
+    .dropdown label:hover {
+      background-color: #f7fafc;
+    }
+
+    .dropdown input[type="checkbox"] {
+      margin-right: 8px;
     }
   </style>
 </head>
@@ -358,9 +396,9 @@
             background: white;
           ">
         </div>
-        <div class="button filter">See Searches by type</div>
-        <div class="button filter">Property Type</div>
-        <div class="button filter">Technology Type</div>
+        <div class="button filter" id="">See Searches by type</div>
+        <div class="button filter" id="prop-type">Property Type</div>
+        <div class="button filter" id="tech-type">Technology Type</div>
       </div>
       <div class="main button"> Search</div>
     </div>
@@ -644,6 +682,13 @@
         this.scrollButton = document.getElementById('scroll-to-top');
         // this.jurisdictionName = document.getElementById('jurisdiction-name');
 
+        this.techType = document.getElementById('tech-type');
+        this.propType = document.getElementById('prop-type');
+
+        this.activeDropdown = null;
+        this.selectedPropertyTypes = [];
+        this.selectedTechTypes = [];
+
         this.initUI();
         this.initEventListeners();
       }
@@ -664,6 +709,13 @@
             this.scrollButton.classList.add('visible');
           } else {
             this.scrollButton.classList.remove('visible');
+          }
+        });
+
+        // Add click event listener to close dropdowns when clicking outside
+        document.addEventListener('click', (e) => {
+          if (!e.target.closest('.dropdown') && !e.target.closest('.filter')) {
+            this.hideDropdowns();
           }
         });
       }
@@ -883,6 +935,87 @@
             return '#808080'; // Gray
         }
       }
+
+      initFilter(config) {
+        const { id, buttonEl, options, onSelectionChange } = config;
+        const dropdown = document.createElement('div');
+        dropdown.className = 'dropdown';
+        dropdown.id = id;
+
+        options.forEach(option => {
+          const label = document.createElement('label');
+          const checkbox = document.createElement('input');
+          checkbox.type = 'checkbox';
+          checkbox.value = option;
+
+          checkbox.addEventListener('change', () => {
+            const selectedValues = Array.from(dropdown.querySelectorAll('input:checked'))
+              .map(cb => cb.value);
+            onSelectionChange(selectedValues);
+          });
+
+          label.appendChild(checkbox);
+          label.appendChild(document.createTextNode(option));
+          dropdown.appendChild(label);
+        });
+
+        document.body.appendChild(dropdown);
+
+        buttonEl.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.toggleDropdown(dropdown, buttonEl);
+        });
+
+        return dropdown;
+      }
+
+      initPropertyTypeFilter(propertyTypes) {
+        this.initFilter({
+          id: 'property-type-dropdown',
+          buttonEl: this.propType,
+          options: propertyTypes,
+          onSelectionChange: (selected) => {
+            this.selectedPropertyTypes = selected;
+            // Emit event or call callback if needed
+            this.eventBus.emit('propertyTypeFilterChanged', { selected });
+          }
+        });
+      }
+
+      initTechTypeFilter(techTypes) {
+        this.initFilter({
+          id: 'tech-type-dropdown',
+          buttonEl: this.techType,
+          options: techTypes,
+          onSelectionChange: (selected) => {
+            this.selectedTechTypes = selected;
+            // Emit event or call callback if needed
+            this.eventBus.emit('techTypeFilterChanged', { selected });
+          }
+        });
+      }
+
+      toggleDropdown(dropdown, button) {
+        if (this.activeDropdown === dropdown) {
+          this.hideDropdowns();
+        } else {
+          this.hideDropdowns();
+          this.showDropdown(dropdown, button);
+        }
+      }
+
+      showDropdown(dropdown, button) {
+        const rect = button.getBoundingClientRect();
+        dropdown.style.top = `${rect.bottom}px`;
+        dropdown.style.left = `${rect.left}px`;
+        dropdown.classList.add('show');
+        this.activeDropdown = dropdown;
+      }
+
+      hideDropdowns() {
+        document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('show'));
+        this.activeDropdown = null;
+      }
     }
 
     // Main function
@@ -890,6 +1023,10 @@
       const eventBus = new EventBus();
       const mapObj = new GMap(eventBus);
       const ui = new UI(eventBus);
+
+      // Initialize filters with sample data (replace with actual API data)
+      ui.initPropertyTypeFilter(['Commercial', 'Residential', 'Other']);
+      ui.initTechTypeFilter(['Rain Barrel', 'Rain Garden', 'Cistern', 'Green Roof', 'Turf Replacement', 'Other']);
 
       eventBus.on('polygonClicked', data => {
         console.log('eventBus polygonClicked', data);
@@ -940,6 +1077,14 @@
           card.style.display = data.visibleParcels.includes(parcelId) ? 'block' : 'none';
         });
       });
+
+      eventBus.on('propertyTypeFilterChanged', data => {
+        console.log('eventBus propertyTypeFilterChanged', ui.selectedPropertyTypes);
+      });
+      eventBus.on('techTypeFilterChanged', data => {
+        console.log('eventBus techTypeFilterChanged', ui.selectedTechTypes);
+      });
+
     }
 
   </script>
