@@ -514,13 +514,28 @@
             paths: feature.geometry.coordinates[0].map(coord => ({ lat: coord[1], lng: coord[0] })),
             map: this.map,
             fillColor: '#2196F3',
-            fillOpacity: 0.3,
+            fillOpacity: 0.2,
             strokeColor: '#1976D2',
             strokeWeight: 1
           });
 
           polygon.esri_id = feature.properties.esri_id;
           polygon.name = feature.properties.name;
+
+          // Add hover events
+          polygon.addListener('mouseover', () => {
+            polygon.setOptions({
+              strokeWeight: 4,
+              strokeOpacity: 1
+            });
+          });
+
+          polygon.addListener('mouseout', () => {
+            polygon.setOptions({
+              strokeWeight: 1,
+              strokeOpacity: 0.7
+            });
+          });
 
           polygon.addListener('click', () => this.handlePolygonClick(polygon));
 
@@ -529,8 +544,19 @@
       }
 
       handlePolygonClick(polygon) {
-        this.polygons.forEach(p => p.setOptions({ fillColor: '#2196F3', fillOpacity: 0.3 }));
-        polygon.setOptions({ fillColor: '#4CAF50', fillOpacity: 0.5 });
+        this.polygons.forEach(p => p.setOptions({
+          fillColor: '#2196F3',
+          fillOpacity: 0.2,
+          strokeWeight: 1,
+          strokeOpacity: 0.7
+        }));
+
+        polygon.setOptions({
+          fillColor: '#4CAF50',
+          fillOpacity: 0.2,
+          strokeWeight: 4,
+          strokeOpacity: 1
+        });
         this.eventBus.emit('polygonClicked', { polygon });
       }
 
