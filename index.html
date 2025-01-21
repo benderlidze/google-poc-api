@@ -440,7 +440,32 @@
         this.polygons = [];
         this.markers = [];
         this.activeMarker = null;
+        this.selectedPolygonId = null;
         this.viewportEnabled = false;
+
+        this.polygonStyles = {
+          default: {
+            fillColor: '#2196F3',
+            fillOpacity: 0.2,
+            strokeColor: '#1976D2',
+            strokeWeight: 1,
+            strokeOpacity: 0.7
+          },
+          hover: {
+            fillColor: '#2196F3',
+            fillOpacity: 0.2,
+            strokeColor: '#1976D2',
+            strokeWeight: 4,
+            strokeOpacity: 1
+          },
+          selected: {
+            fillColor: '#4CAF50',
+            fillOpacity: 0.2,
+            strokeWeight: 4,
+            strokeOpacity: 1,
+            strokeColor: '#1976D2'
+          }
+        };
 
         this.filterParcelsValues = [];
         this.searchTerm = null;
@@ -513,10 +538,7 @@
           const polygon = new google.maps.Polygon({
             paths: feature.geometry.coordinates[0].map(coord => ({ lat: coord[1], lng: coord[0] })),
             map: this.map,
-            fillColor: '#2196F3',
-            fillOpacity: 0.2,
-            strokeColor: '#1976D2',
-            strokeWeight: 1
+            ...this.polygonStyles.default
           });
 
           polygon.esri_id = feature.properties.esri_id;
@@ -524,17 +546,15 @@
 
           // Add hover events
           polygon.addListener('mouseover', () => {
-            polygon.setOptions({
-              strokeWeight: 4,
-              strokeOpacity: 1
-            });
+            if (polygon.esri_id !== this.selectedPolygonId) {
+              polygon.setOptions(this.polygonStyles.hover);
+            }
           });
 
           polygon.addListener('mouseout', () => {
-            polygon.setOptions({
-              strokeWeight: 1,
-              strokeOpacity: 0.7
-            });
+            if (polygon.esri_id !== this.selectedPolygonId) {
+              polygon.setOptions(this.polygonStyles.default);
+            }
           });
 
           polygon.addListener('click', () => this.handlePolygonClick(polygon));
@@ -544,19 +564,18 @@
       }
 
       handlePolygonClick(polygon) {
-        this.polygons.forEach(p => p.setOptions({
-          fillColor: '#2196F3',
-          fillOpacity: 0.2,
-          strokeWeight: 1,
-          strokeOpacity: 0.7
-        }));
+        // Reset previous selected polygon
+        if (this.selectedPolygonId) {
+          const previousPolygon = this.polygons.find(p => p.esri_id === this.selectedPolygonId);
+          if (previousPolygon) {
+            previousPolygon.setOptions(this.polygonStyles.default);
+          }
+        }
 
-        polygon.setOptions({
-          fillColor: '#4CAF50',
-          fillOpacity: 0.2,
-          strokeWeight: 4,
-          strokeOpacity: 1
-        });
+        // Set new selected polygon
+        this.selectedPolygonId = polygon.esri_id;
+        polygon.setOptions(this.polygonStyles.selected);
+
         this.eventBus.emit('polygonClicked', { polygon });
       }
 
