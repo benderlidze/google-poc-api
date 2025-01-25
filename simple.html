@@ -594,7 +594,6 @@
                     if (findPolygonsContainingPoint.length > 0) {
 
                         const bounds = new google.maps.LatLngBounds();
-
                         findPolygonsContainingPoint.forEach(polygon => {
                             polygon.setVisible(true);
                             polygon.getPath().forEach(coordinate => {
@@ -604,6 +603,9 @@
 
                         this.map.fitBounds(bounds);
                     }
+
+                    // FILL Programs panel with data
+                    this.eventBus.emit('autocompleteChanged', { findPolygonsContainingPoint });
 
                 });
             }
@@ -929,18 +931,48 @@
                 this.leftSidebar.appendChild(resetButton);
             }
 
+            buildIncentiveFilters(incentives) {
+
+                const filterSection = document.createElement('div');
+
+                const searchBox = document.createElement('input');
+                searchBox.type = 'text';
+                searchBox.className = 'search-box';
+                searchBox.placeholder = 'Search Incentive by name...';
+                searchBox.addEventListener('input', () => this.filterIncentive());
+
+                filterSection.appendChild(searchBox);
+
+                const viewportFilter = document.createElement('label');
+                viewportFilter.style.marginTop = '16px';
+                viewportFilter.style.display = 'block';
+
+                filterSection.appendChild(viewportFilter);
+                this.leftSidebar.appendChild(filterSection);
+            }
+
+            filterIncentive() {
+                const searchTerm = document.querySelector('#left-sidebar .search-box').value.toLowerCase();
+                const cards = document.querySelectorAll('.card');
+                cards.forEach(card => {
+                    const incentiveName = card.querySelector('h3').textContent.toLowerCase();
+                    if (incentiveName.includes(searchTerm)) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            }
+
             displayIncentives(incentives) {
                 console.log('incentives', incentives);
                 // this.leftSidebar.innerHTML = '';
                 incentives.forEach(incentive => {
 
-
                     const hasEsriId = incentive.jurisdiction_v2?.esri_id && incentive.jurisdiction_v2.esri_id !== 'N/A';
                     // card.className = `card${hasEsriId ? '' : ' disabled'}`;
                     // Store the esri_id with the card (needed for functionality but not displayed)
                     const esriId = hasEsriId ? incentive.jurisdiction_v2.esri_id : '';
-
-
 
                     const card = document.createElement('div');
                     card.className = 'card';
@@ -1240,6 +1272,7 @@
                 .then(data => {
                     console.log('data', data);
                     ui.addResetMapButton();
+                    ui.buildIncentiveFilters();
                     ui.displayIncentives(data);
                 });
 
@@ -1287,6 +1320,10 @@
                 ui.rightToggleButton.style.display = 'none';
 
             });
+
+            eventBus.on('autocompleteChanged', polygons => {
+                console.log('polygons', polygons);
+            })
 
 
             //     fetch(`https://api.rainplan.com/api:IME/jurisdiction_parcels_geojson?esri_id=${esri_id}`)
