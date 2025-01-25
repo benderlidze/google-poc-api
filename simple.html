@@ -594,8 +594,6 @@
                         visible: false
                     });
 
-
-
                     polygon.id = feature.id;
                     polygon.esri_id = feature.properties.esri_id;
                     polygon.name = feature.properties.name;
@@ -616,6 +614,7 @@
                     polygon.addListener('click', () => {
                         console.log('polygon', polygon);
                         this.handlePolygonClick(polygon)
+
                     });
 
                     this.polygons.push(polygon);
@@ -648,14 +647,12 @@
 
                     const bounds = new google.maps.LatLngBounds();
                     polygon.getPath().forEach(coordinate => {
-                        console.log('coordinate', coordinate);
                         bounds.extend(coordinate);
                     });
                     this.map.fitBounds(bounds);
 
                     this.handlePolygonClick(polygon);
                 }
-
             }
 
             handlePolygonClick(polygon) {
@@ -708,6 +705,8 @@
                     this.resetMarkers();
                     marker.setIcon(this.getHighlightedMarkerIcon(marker.get('parcelType')));
                     this.activeMarker = marker;
+
+                    this.map.panTo(marker.getPosition());
                 }
             }
 
@@ -1227,6 +1226,20 @@
                 mapObj.showPolygonById(esriId);
             });
 
+            eventBus.on('polygonClicked', data => {
+                console.log('eventBus polygonClicked', data);
+                const { esri_id } = data.polygon;
+
+                fetch(`https://api.rainplan.com/api:IME/jurisdiction_parcels_geojson?esri_id=${esri_id}`)
+                    .then(response => response.json())
+                    .then(parcelsData => {
+                        console.log('parcelsData', parcelsData);
+                        // m.loadParcels(parcelsData)
+                        mapObj.loadParcels(parcelsData);
+                        ui.displayParcels(parcelsData, data.name);
+                    });
+            });
+
 
 
 
@@ -1244,10 +1257,6 @@
             // fetch("https://api.rainplan.com/vault/1qbvU_T3/vD4h9FslLVwhjjvZMJyGshqeTjI/iCxsuQ../jurisdictions-reduced+copy.geojson")
             //     .then(data => data.json())
             //     .then(json => console.log('data', json));
-
-
-
-
 
             //   ui.initPropertyTypeFilter(['Commercial', 'Residential', 'Other']);
             //   ui.initTechTypeFilter(['Rain Barrel', 'Rain Garden', 'Cistern', 'Green Roof', 'Turf Replacement', 'Other']);
@@ -1273,34 +1282,34 @@
             //       });
             //   });
 
-            //   eventBus.on('parcelCardClicked', data => {
-            //     console.log('eventBus parcelCardClicked', data);
-            //     eventBus.emit('markerClicked', { parcelId: data.parcelId });
-            //     mapObj.highlightMarkerById(data.parcelId);
-            //   });
+            eventBus.on('parcelCardClicked', data => {
+                console.log('eventBus parcelCardClicked', data);
+                eventBus.emit('markerClicked', { parcelId: data.parcelId });
+                mapObj.highlightMarkerById(data.parcelId);
+            });
 
-            //   eventBus.on('markerClicked', data => {
-            //     console.log('eventBus markerClicked', data);
-            //     ui.highlightParcelCard(data.parcelId);
-            //   });
+            eventBus.on('markerClicked', data => {
+                console.log('eventBus markerClicked', data);
+                ui.highlightParcelCard(data.parcelId);
+            });
 
-            //   eventBus.on('filterParcels', data => {
-            //     console.log('eventBus filterParcels', data);
-            //     mapObj.filterParcels(data.activeFilters, data.searchTerm);
-            //   });
+            eventBus.on('filterParcels', data => {
+                console.log('eventBus filterParcels', data);
+                mapObj.filterParcels(data.activeFilters, data.searchTerm);
+            });
 
-            //   eventBus.on('viewportFilterToggled', data => {
-            //     mapObj.setViewportFilter(data.enabled);
-            //   });
+            eventBus.on('viewportFilterToggled', data => {
+                mapObj.setViewportFilter(data.enabled);
+            });
 
-            //   eventBus.on('viewportFiltered', data => {
-            //     // Optionally update UI to show only visible parcels
-            //     const cards = document.querySelectorAll('.parcel-card');
-            //     cards.forEach(card => {
-            //       const parcelId = parseInt(card.dataset.parcelId);
-            //       card.style.display = data.visibleParcels.includes(parcelId) ? 'block' : 'none';
-            //     });
-            //   });
+            eventBus.on('viewportFiltered', data => {
+                // Optionally update UI to show only visible parcels
+                const cards = document.querySelectorAll('.parcel-card');
+                cards.forEach(card => {
+                    const parcelId = parseInt(card.dataset.parcelId);
+                    card.style.display = data.visibleParcels.includes(parcelId) ? 'block' : 'none';
+                });
+            });
 
             //   eventBus.on('propertyTypeFilterChanged', data => {
             //     console.log('eventBus propertyTypeFilterChanged', ui.selectedPropertyTypes);
