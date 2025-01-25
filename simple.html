@@ -444,6 +444,9 @@
     </div>
     <script>
 
+        const center = { lat: 39, lng: -94 };
+        const zoom = 4;
+
         // Event Bus 
         class EventBus {
             constructor() {
@@ -466,6 +469,7 @@
 
         // Map class
         class GMap {
+
             constructor(eventBus) {
                 this.eventBus = eventBus;
                 this.map = null;
@@ -503,6 +507,10 @@
                 this.searchTerm = null;
             }
 
+            getMap() {
+                return this.map;
+            }
+
             async initialize() {
                 await this.initMap();
                 this.initAutocomplete();
@@ -510,8 +518,8 @@
 
             initMap() {
                 this.map = new google.maps.Map(document.getElementById("map"), {
-                    zoom: 4,
-                    center: { lat: 39, lng: -94 },
+                    zoom: zoom,
+                    center: center,
                     mapId: '8f348c2f6c51a2e',
                 });
 
@@ -558,7 +566,6 @@
                     if (places.length === 0) {
                         return;
                     }
-
                     console.log('places', places);
 
                     const bounds = new google.maps.LatLngBounds();
@@ -575,6 +582,8 @@
                     });
                     this.map.fitBounds(bounds);
                     this.map.setZoom(15);
+
+                    this.eventBus.emit('autocompleteChanged', { location: places[0] });
                 });
             }
 
@@ -1206,7 +1215,6 @@
                     ui.displayIncentives(data);
                 });
 
-
             //fetch(`https://api.rainplan.com/vault/1qbvU_T3/vD4h9FslLVwhjjvZMJyGshqeTjI/iCxsuQ../jurisdictions-reduced+copy.geojson`)
             fetch(`jurisdictions-reduced copy.geojson`)
                 .then(response => response.json())
@@ -1218,7 +1226,6 @@
                     console.error('Error loading data', err);
                     mapObj.hideLoadingOverlay();
                 });
-
 
             eventBus.on('incentiveCardClicked', data => {
                 console.log('eventBus incentiveCardClicked', data);
@@ -1240,7 +1247,18 @@
                     });
             });
 
+            eventBus.on('resetMapClicked', () => {
+                console.log('eventBus resetMapClicked');
+                mapObj.hideAllPolygons();
+                mapObj.markers.forEach(marker => marker.setMap(null));
 
+                mapObj.getMap().setZoom(4);
+                mapObj.getMap().setCenter(center);
+
+                ui.rightSidebar.style.display = 'none';
+                ui.rightToggleButton.style.display = 'none';
+
+            });
 
 
             //     fetch(`https://api.rainplan.com/api:IME/jurisdiction_parcels_geojson?esri_id=${esri_id}`)
