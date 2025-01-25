@@ -1079,8 +1079,8 @@
                     card.dataset.parcelId = parcel.properties.id;
                     card.innerHTML = `
                     <h3>ID: ${parcel.properties.id}</h3>
-                    <p>Name: ${parcel.properties.name}</p>
-                    <p>Type: ${parcel.properties.type}</p>
+                    <p style="display:none">Name: ${parcel.properties.name}</p>
+                    <p style="display:none">Type: ${parcel.properties.type}</p>
                 `;
 
                     const typeIndicator = document.createElement('div');
