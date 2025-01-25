@@ -374,6 +374,38 @@
         .dropdown input[type="checkbox"] {
             margin-right: 8px;
         }
+
+        .map-loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
     </style>
 </head>
 
@@ -469,11 +501,11 @@
 
                 this.filterParcelsValues = [];
                 this.searchTerm = null;
+            }
 
-                window.onload = () => {
-                    this.initMap();
-                    this.initAutocomplete();
-                };
+            async initialize() {
+                await this.initMap();
+                this.initAutocomplete();
             }
 
             initMap() {
@@ -489,7 +521,25 @@
                         this.filterParcelsByViewport();
                     }
                 });
+            }
 
+            showLoadingOverlay() {
+                const overlay = document.createElement('div');
+                overlay.id = 'map-loading-overlay';
+                overlay.className = 'map-loading-overlay';
+
+                const spinner = document.createElement('div');
+                spinner.className = 'loading-spinner';
+
+                overlay.appendChild(spinner);
+                document.getElementById('map').appendChild(overlay);
+            }
+
+            hideLoadingOverlay() {
+                const overlay = document.getElementById('map-loading-overlay');
+                if (overlay) {
+                    overlay.remove();
+                }
             }
 
             initAutocomplete() {
@@ -530,12 +580,23 @@
 
             loadPolygons(data) {
                 data.features.forEach(feature => {
+
+                    // For MultiPolygon, create polygon paths for each ring
+                    const paths = feature.geometry.type === "MultiPolygon"
+                        // Get the outer ring of each polygon
+                        ? feature.geometry.coordinates.map(polygonRing => this.coordsToLatLng(polygonRing[0]))
+                        : this.coordsToLatLng(feature.geometry.coordinates[0])
+
                     const polygon = new google.maps.Polygon({
-                        paths: feature.geometry.coordinates[0].map(coord => ({ lat: coord[1], lng: coord[0] })),
+                        paths: paths,
                         map: this.map,
-                        ...this.polygonStyles.default
+                        ...this.polygonStyles.default,
+                        visible: false
                     });
 
+
+
+                    polygon.id = feature.id;
                     polygon.esri_id = feature.properties.esri_id;
                     polygon.name = feature.properties.name;
 
@@ -552,10 +613,49 @@
                         }
                     });
 
-                    polygon.addListener('click', () => this.handlePolygonClick(polygon));
+                    polygon.addListener('click', () => {
+                        console.log('polygon', polygon);
+                        this.handlePolygonClick(polygon)
+                    });
 
                     this.polygons.push(polygon);
                 });
+            }
+
+            hideAllPolygons() {
+                this.polygons.forEach(polygon => polygon.setVisible(false));
+            }
+
+
+            coordsToLatLng(coords) {
+                return coords.map(coord => ({
+                    lat: coord[1],
+                    lng: coord[0]
+                }));
+            }
+
+            showPolygonById(esri_id) {
+                console.log('this.polygons', this.polygons);
+                console.log('esri_id', esri_id);
+
+                this.hideAllPolygons()
+
+                const polygon = this.polygons.find(p => p.esri_id === +esri_id);
+
+                console.log('polygon', polygon);
+                if (polygon) {
+                    polygon.setVisible(true);
+
+                    const bounds = new google.maps.LatLngBounds();
+                    polygon.getPath().forEach(coordinate => {
+                        console.log('coordinate', coordinate);
+                        bounds.extend(coordinate);
+                    });
+                    this.map.fitBounds(bounds);
+
+                    this.handlePolygonClick(polygon);
+                }
+
             }
 
             handlePolygonClick(polygon) {
@@ -779,23 +879,49 @@
                 this.rightSidebar.scrollTo({ top: 0, behavior: 'smooth' });
             }
 
+            addResetMapButton() {
+                const resetButton = document.createElement('button');
+                resetButton.textContent = 'Reset Map';
+                resetButton.className = 'button main';
+                resetButton.style.width = '100%';
+                resetButton.style.marginBottom = '10px';
+
+                resetButton.addEventListener('click', () => {
+                    console.log('resetMap');
+                    this.eventBus.emit('resetMapClicked');
+                });
+                this.leftSidebar.appendChild(resetButton);
+            }
+
             displayIncentives(incentives) {
                 console.log('incentives', incentives);
-                this.leftSidebar.innerHTML = '';
+                // this.leftSidebar.innerHTML = '';
                 incentives.forEach(incentive => {
+
+
+                    const hasEsriId = incentive.jurisdiction_v2?.esri_id && incentive.jurisdiction_v2.esri_id !== 'N/A';
+                    // card.className = `card${hasEsriId ? '' : ' disabled'}`;
+                    // Store the esri_id with the card (needed for functionality but not displayed)
+                    const esriId = hasEsriId ? incentive.jurisdiction_v2.esri_id : '';
+
+
+
                     const card = document.createElement('div');
                     card.className = 'card';
                     card.innerHTML = `
                     ${incentive.logo_url ? `<img src="${incentive.logo_url}" alt="${incentive.name} logo">` : ''}
-                    <h3>${incentive.name}</h3>
-                    <p>${incentive.summary}</p>
-                    ${incentive.min_payout ? `<p>Min payout: ${incentive.min_payout}</p>` : ''}
-                    ${incentive.max_payout ? `<p>Max payout: ${incentive.max_payout}</p>` : ''}
-                    <a href="${incentive.link}" target="_blank">Learn More</a>
+                        <h3>${incentive.name}</h3>
+                        ID: ${incentive.id}
+                        esri_id: ${esriId}
                     `;
-                    card.addEventListener('click', () => window.open(incentive.link, '_blank'));
+                    card.addEventListener('click', () => {
+                        this.eventBus.emit('incentiveCardClicked', { esriId });
+                    });
                     this.leftSidebar.appendChild(card);
                 });
+
+                this.leftSidebar.style.display = 'block';
+                this.leftToggleButton.style.display = 'block';
             }
 
             displayParcels(parcelsData, name) {
@@ -1063,19 +1189,46 @@
         }
 
         // Main function
-        function initMap() {
+        async function initMap() {
             const eventBus = new EventBus();
+
             const mapObj = new GMap(eventBus);
+            await mapObj.initialize();
+
             const ui = new UI(eventBus);
 
-
+            mapObj.showLoadingOverlay();
 
             fetch(`https://api.rainplan.com/api:IME/Incentives_and_jurisdictions`)
                 .then(response => response.json())
                 .then(data => {
                     console.log('data', data);
-                    ui.displayParcels(parcelsData, data.name);
+                    ui.addResetMapButton();
+                    ui.displayIncentives(data);
                 });
+
+
+            //fetch(`https://api.rainplan.com/vault/1qbvU_T3/vD4h9FslLVwhjjvZMJyGshqeTjI/iCxsuQ../jurisdictions-reduced+copy.geojson`)
+            fetch(`jurisdictions-reduced copy.geojson`)
+                .then(response => response.json())
+                .then(data => {
+                    console.log('data', data);
+                    mapObj.loadPolygons(data);
+                    mapObj.hideLoadingOverlay();
+                }).catch(err => {
+                    console.error('Error loading data', err);
+                    mapObj.hideLoadingOverlay();
+                });
+
+
+            eventBus.on('incentiveCardClicked', data => {
+                console.log('eventBus incentiveCardClicked', data);
+                const esriId = data.esriId;
+                mapObj.showPolygonById(esriId);
+            });
+
+
+
 
             //     fetch(`https://api.rainplan.com/api:IME/jurisdiction_parcels_geojson?esri_id=${esri_id}`)
             //       .then(response => response.json())

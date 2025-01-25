@@ -1,0 +1,880 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Jurisdiction Map with Incentives</title>
+<script
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCo85RezTo2m0-HlspByO-urwPIZDft2bM&callback=initMap&v=3.58"
+      defer
+    ></script>
+  <script src="https://unpkg.com/@googlemaps/markerclusterer@2.5.1/dist/index.min.js"></script>
+<style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    }
+
+    #app-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 64px;
+      background: white;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      z-index: 1000;
+    }
+
+    #app-bar img {
+      height: 40px;
+      width: auto;
+    }
+
+    #jurisdiction-name {
+      flex: 1;
+      text-align: center;
+      font-size: 1.2rem;
+      font-weight: 500;
+      color: #1a202c;
+    }
+
+    #container {
+      display: flex;
+      height: 100vh;
+      position: relative;
+      padding-top: 64px; /* Make space for app bar */
+    }
+
+    #map {
+      flex: 1;
+      height: 100%;
+    }
+
+    #left-sidebar {
+      width: 400px;
+      overflow-y: auto;
+      padding: 24px;
+      background: #f8fafc;
+      border-right: 1px solid #e2e8f0;
+      transition: all 0.3s ease;
+      display: block; /* Always show */
+    }
+
+    #right-sidebar {
+      width: 400px;
+      overflow-y: auto;
+      padding: 24px;
+      background: #f8fafc;
+      border-left: 1px solid #e2e8f0;
+      transition: all 0.3s ease;
+      display: none;  /* Hide initially */
+    }
+
+    #left-sidebar.collapsed,
+    #right-sidebar.collapsed {
+      width: 0;
+      padding: 0;
+      border: none;
+      overflow: hidden;
+    }
+
+    .toggle-sidebar {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 1000;
+      padding: 8px 12px;
+      background: white;
+      border: 1px solid #e2e8f0;
+      cursor: pointer;
+      box-shadow: 2px 0 4px rgba(0,0,0,0.1);
+      transition: all 0.3s ease;
+      display: none;  /* Hide initially */
+    }
+
+    #toggle-left-sidebar {
+      left: 410px;
+      border-radius: 0 4px 4px 0;
+    }
+
+    #toggle-right-sidebar {
+      right: 410px;
+      border-radius: 4px 0 0 4px;
+    }
+
+    #toggle-left-sidebar.collapsed {
+      left: 0;
+    }
+
+    #toggle-right-sidebar.collapsed {
+      right: 0;
+    }
+
+    .filter-section {
+      background: white;
+      padding: 16px;
+      margin-bottom: 16px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .filter-section label {
+      display: flex;
+      align-items: center;
+      margin: 8px 0;
+      cursor: pointer;
+    }
+
+    .filter-section input[type="checkbox"] {
+      margin-right: 8px;
+    }
+
+    .search-box {
+      width: 100%;
+      padding: 8px 12px;
+      margin: 12px 0;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    .search-box:focus {
+      outline: none;
+      border-color: #2196F3;
+      box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
+    }
+
+    .filter-section .color-indicator {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 8px;
+    }
+
+    .parcel-card {
+      position: relative;
+      background: white;
+      padding: 24px;
+      margin-bottom: 16px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .parcel-card.highlighted {
+      background: #e3f2fd;
+      box-shadow: 0 4px 8px rgba(33, 150, 243, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .parcel-type-indicator {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+    }
+
+    .card {
+      background: white;
+      padding: 24px;
+      margin-bottom: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      transition: transform 0.2s, box-shadow 0.2s;
+      cursor: pointer;
+    }
+
+    .card.disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .card.disabled:hover {
+      transform: none;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+
+    .card h3 {
+      margin-bottom: 12px;
+      color: #1a202c;
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+
+    .card img {
+      max-width: 120px;
+      height: auto;
+      margin-bottom: 16px;
+      border-radius: 8px;
+    }
+
+    .card p {
+      color: #4a5568;
+      line-height: 1.6;
+      margin-bottom: 12px;
+      font-size: 0.95rem;
+    }
+
+    .card a {
+      display: inline-block;
+      color: #3182ce;
+      text-decoration: none;
+      font-weight: 500;
+      padding: 8px 0;
+      position: relative;
+    }
+
+    .card a::after {
+      content: '';
+      position: absolute;
+      width: 100%;
+      height: 2px;
+      bottom: 0;
+      left: 0;
+      background-color: #3182ce;
+      transform: scaleX(0);
+      transform-origin: bottom right;
+      transition: transform 0.3s ease-out;
+    }
+
+    .card a:hover::after {
+      transform: scaleX(1);
+      transform-origin: bottom left;
+    }
+
+    #scroll-to-top {
+      position: fixed;
+      right: 420px; /* Position it next to the right sidebar */
+      bottom: 20px;
+      width: 40px;
+      height: 40px;
+      background-color: #2196F3;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      display: none; /* Hidden by default */
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      transition: all 0.3s ease;
+      z-index: 1000;
+    }
+
+    #scroll-to-top:hover {
+      background-color: #1976D2;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    }
+
+    #scroll-to-top.visible {
+      display: flex;
+    }
+
+    #scroll-to-top.sidebar-collapsed {
+      right: 20px;
+    }
+
+    #reset-map {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 16px;
+      background: #e2e8f0;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      color: #1a202c;
+      display: none;
+      transition: all 0.2s;
+    }
+
+    #reset-map:hover {
+      background: #cbd5e0;
+    }
+
+    .payout {
+      background: #f7fafc;
+      padding: 8px 12px;
+      border-radius: 6px;
+      display: inline-block;
+      margin: 4px 8px 4px 0;
+      font-size: 0.9rem;
+      color: #2d3748;
+    }
+
+    #loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.9);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+      font-size: 1.5rem;
+      color: #2196F3;
+    }
+
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 5px solid #f3f3f3;
+      border-top: 5px solid #2196F3;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-right: 15px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div id="app-bar">
+    <img src="https://www.rainplan.com/wp-content/uploads/2024/10/cropped-Rainplan-Logo-300x259.png" alt="Rainplan Logo">
+    <div id="jurisdiction-name">Select an Incentive</div>
+  </div>
+  <div id="loading-overlay">
+    <div class="spinner"></div>
+    <div>Loading map data...</div>
+  </div>
+  <div id="container">
+    <div id="left-sidebar"></div>
+    <div id="map"></div>
+    <div id="right-sidebar"></div>
+    <button id="toggle-right-sidebar" class="toggle-sidebar">→</button>
+    <button id="scroll-to-top" title="Scroll to top">↑↑</button>
+  </div>
+  <script>
+    let map;
+    let polygons = [];
+    let markers = []; // Array to store markers
+    let activeMarker = null; // Track currently highlighted marker
+    
+    function highlightMarker(marker) {
+      // Reset previous marker if exists
+      if (activeMarker && activeMarker !== marker) {
+        activeMarker.setIcon({
+          path: google.maps.SymbolPath.CIRCLE,
+          fillColor: getMarkerColor(activeMarker.get('parcelType')),
+          fillOpacity: 1,
+          strokeWeight: 1,
+          strokeColor: '#FFFFFF',
+          scale: 8
+        });
+      }
+      
+      // Highlight new marker
+      marker.setIcon({
+        path: google.maps.SymbolPath.CIRCLE,
+        fillColor: getMarkerColor(marker.get('parcelType')),
+        fillOpacity: 1,
+        strokeWeight: 3,
+        strokeColor: '#FFFFFF',
+        strokeOpacity: 0.9,
+        scale: 11
+      });
+      
+      activeMarker = marker;
+    }
+
+    // Function to get marker color based on parcel type
+    function getMarkerColor(type) {
+      switch(type) {
+        case 'searched':
+          return '#FFA500'; // Orange
+        case 'engaged':
+          return '#4CAF50'; // Green
+        case 'claimed':
+          return '#2196F3'; // Blue
+        default:
+          return '#808080'; // Gray
+      }
+    }
+
+async function initMap() {
+  map = new google.maps.Map(document.getElementById("map"), {
+    zoom: 4,
+    center: { lat: 39, lng: -94 },
+    mapId: '8f348c2f6c51a2e',
+  });
+
+  // Fetch and display all incentives immediately
+  const incentivesResponse = await fetch('https://api.rainplan.com/api:IME/Incentives_and_jurisdictions');
+  const incentives = await incentivesResponse.json();
+  displayIncentives(incentives);
+  
+  // Store original incentives for reference
+  window.originalIncentives = incentives;
+
+  // Show loading overlay
+  document.getElementById('loading-overlay').style.display = 'flex';
+
+  try {
+    // Load and display GeoJSON polygons
+    const response = await fetch("jurisdictions-reduced copy.geojson");
+    const data = await response.json();
+    
+    // Helper function to convert coordinates to LatLng objects
+    function coordsToLatLng(coords) {
+      return coords.map(coord => ({
+        lat: coord[1],
+        lng: coord[0]
+      }));
+    }
+  
+    // Create polygons but don't add to map initially
+    data.features.forEach(feature => {
+      let polygon;
+      
+      if (feature.geometry.type === "MultiPolygon") {
+        // For MultiPolygon, create polygon paths for each ring
+        const paths = feature.geometry.coordinates.map(polygonRing => 
+          coordsToLatLng(polygonRing[0]) // Get the outer ring of each polygon
+        );
+        
+        polygon = new google.maps.Polygon({
+          paths: paths,
+          map: null,
+          fillColor: '#2196F3',
+          fillOpacity: 0.3,
+          strokeColor: '#1976D2',
+          strokeWeight: 1
+        });
+      } else {
+        // Handle single polygons
+        polygon = new google.maps.Polygon({
+          paths: coordsToLatLng(feature.geometry.coordinates[0]),
+          map: null,
+          fillColor: '#2196F3',
+          fillOpacity: 0.3,
+          strokeColor: '#1976D2',
+          strokeWeight: 1
+        });
+      }
+
+      // Store esri_id with polygon
+      polygon.esri_id = feature.properties.esri_id;
+      
+      // Add click listener
+      polygon.addListener('click', async () => {
+        // Reset colors of all polygons
+        polygons.forEach(p => {
+          p.setOptions({
+            fillColor: '#2196F3',
+            fillOpacity: 0.3
+          });
+        });
+        
+        // Highlight clicked polygon
+        polygon.setOptions({
+          fillColor: '#4CAF50',
+          fillOpacity: 0.5
+        });
+
+        // Clear existing markers
+        markers.forEach(marker => marker.setMap(null));
+        markers = [];
+
+        // Update jurisdiction name in app bar from polygon properties
+        document.getElementById('jurisdiction-name').textContent = feature.properties.name || 'Selected Jurisdiction';
+        
+        // Show right sidebar and toggle button when jurisdiction is clicked
+        rightSidebar.style.display = 'block';
+        rightToggleButton.style.display = 'block';
+
+        // Fetch and display parcels
+        const parcelsResponse = await fetch(`https://api.rainplan.com/api:IME/jurisdiction_parcels_geojson?esri_id=${polygon.esri_id}`);
+        const parcelsData = await parcelsResponse.json();
+        
+        // Display parcel cards in right sidebar
+        displayParcels(parcelsData);
+
+        // Create markers for each parcel
+        parcelsData.feature_parcels.features.forEach(feature => {
+          const marker = new google.maps.Marker({
+            position: {
+              lat: feature.geometry.coordinates[1],
+              lng: feature.geometry.coordinates[0]
+            },
+            map: map,
+            title: feature.properties.name,
+            parcelType: feature.properties.type,
+            parcelId: feature.properties.id,
+            icon: {
+              path: google.maps.SymbolPath.CIRCLE,
+              fillColor: getMarkerColor(feature.properties.type),
+              fillOpacity: 1,
+              strokeWeight: 2,
+              strokeColor: '#FFFFFF',
+              strokeOpacity: 0.7,
+              scale: 7
+            }
+          });
+          
+          // Add click listener to marker
+          marker.addListener('click', () => {
+            // Find corresponding card
+            const parcelId = marker.get('parcelId');
+            const cards = document.querySelectorAll('.parcel-card');
+            let targetCard = null;
+            
+            // First remove highlights from all cards
+            cards.forEach(card => {
+              card.classList.remove('highlighted');
+              if (card.dataset.parcelId === String(parcelId)) {
+                targetCard = card;
+              }
+            });
+            
+            if (targetCard) {
+              // Highlight the marker
+              highlightMarker(marker);
+              
+              // Highlight and scroll to card
+              targetCard.classList.add('highlighted');
+              
+              // Ensure the right sidebar is visible before scrolling
+              const rightSidebar = document.getElementById('right-sidebar');
+              rightSidebar.classList.remove('collapsed');
+              document.getElementById('toggle-right-sidebar').classList.remove('collapsed');
+              document.getElementById('toggle-right-sidebar').textContent = '→';
+              rightSidebar.style.display = 'block';
+              
+              // Scroll the card into view
+              setTimeout(() => {
+                targetCard.scrollIntoView({
+                  behavior: 'smooth',
+                  block: 'center'
+                });
+              }, 100);
+            }
+          });
+          
+          markers.push(marker);
+        });
+      });
+
+      polygons.push(polygon);
+    });
+
+    // Hide loading overlay after everything is loaded
+    document.getElementById('loading-overlay').style.display = 'none';
+  } catch (error) {
+    console.error('Error loading map data:', error);
+    document.getElementById('loading-overlay').innerHTML = `
+      <div style="text-align: center; color: #dc3545;">
+        <h3>Error loading map data</h3>
+        <p>Please refresh the page to try again</p>
+      </div>
+    `;
+  }
+}
+
+function displayIncentives(incentives) {
+  const leftSidebar = document.getElementById('left-sidebar');
+  leftSidebar.innerHTML = '';
+
+  // Add reset map button
+  const resetButton = document.createElement('button');
+  resetButton.id = 'reset-map';
+  resetButton.textContent = 'Reset Map';
+  resetButton.addEventListener('click', () => {
+    // Reset and hide all polygons
+    polygons.forEach(p => {
+      p.setOptions({
+        fillColor: '#2196F3',
+        fillOpacity: 0.3
+      });
+      p.setMap(null);
+    });
+
+    // Clear markers
+    markers.forEach(marker => marker.setMap(null));
+    markers = [];
+
+    // Reset jurisdiction name
+    document.getElementById('jurisdiction-name').textContent = 'Select an Incentive';
+    
+    // Hide right sidebar and its toggle
+    rightSidebar.style.display = 'none';
+    rightToggleButton.style.display = 'none';
+    
+    // Hide reset button
+    resetButton.style.display = 'none';
+    
+    // Reset zoom and center
+    map.setZoom(4);
+    map.setCenter({ lat: 39, lng: -94 });
+    
+    // Redisplay all incentives
+    displayIncentives(window.originalIncentives);
+  });
+  leftSidebar.appendChild(resetButton);
+  
+  incentives.forEach(incentive => {
+    const card = document.createElement('div');
+    const hasEsriId = incentive.jurisdiction_v2?.esri_id && incentive.jurisdiction_v2.esri_id !== 'N/A';
+    card.className = `card${hasEsriId ? '' : ' disabled'}`;
+    
+    // Store the esri_id with the card (needed for functionality but not displayed)
+    card.dataset.esriId = hasEsriId ? incentive.jurisdiction_v2.esri_id : '';
+    
+    card.innerHTML = `
+      ${incentive.logo_url ? `<img src="${incentive.logo_url}" alt="${incentive.name} logo">` : ''}
+      <h3>${incentive.name}</h3>
+      <p>---- ID: ${incentive.id || 'N/A'}</p>
+      <p>${card.dataset.esriId}</p>
+    `;
+
+    // Add click handler for the card (same as before)
+    card.addEventListener('click', async (e) => {
+      if (card.classList.contains('disabled')) return;
+      
+      const esriId = card.dataset.esriId;
+      if (!esriId) return;
+
+      const matchingPolygon = polygons.find(p => p.esri_id === parseInt(esriId));
+      console.log('--->>>',polygons,matchingPolygon);
+      if (!matchingPolygon) return;
+
+      const isActive = matchingPolygon.getMap() !== null;
+      
+      polygons.forEach(p => {
+        p.setOptions({
+          fillColor: '#2196F3',
+          fillOpacity: 0.3
+        });
+        p.setMap(null);
+      });
+
+      if (isActive) {
+        displayIncentives(window.originalIncentives);
+        document.getElementById('jurisdiction-name').textContent = 'Select a jurisdiction';
+        return;
+      }
+
+      if (matchingPolygon) {
+        document.getElementById('reset-map').style.display = 'block';
+        
+        matchingPolygon.setMap(map);
+        
+        setTimeout(() => {
+          matchingPolygon.setOptions({
+            fillColor: '#4CAF50',
+            fillOpacity: 0.5
+          });
+          
+          google.maps.event.trigger(matchingPolygon, 'click');
+        }, 100);
+        
+        const bounds = new google.maps.LatLngBounds();
+        matchingPolygon.getPath().forEach(latLng => bounds.extend(latLng));
+        map.fitBounds(bounds);
+      }
+    });
+    
+    leftSidebar.appendChild(card);
+  });
+}
+
+    let activeFilters = ['searched', 'engaged', 'claimed']; // All types selected by default
+
+    function updateMarkerVisibility() {
+      // Update markers visibility
+      markers.forEach(marker => {
+        const markerType = marker.get('parcelType');
+        marker.setVisible(activeFilters.includes(markerType));
+      });
+      
+      // Update cards visibility
+      const cards = document.querySelectorAll('.parcel-card');
+      cards.forEach(card => {
+        const cardType = card.querySelector('p:nth-child(3)').textContent.split(': ')[1]; // Get type from card text
+        card.style.display = activeFilters.includes(cardType) ? 'block' : 'none';
+      });
+    }
+
+    function displayParcels(parcels) {
+      const rightSidebar = document.getElementById('right-sidebar');
+      rightSidebar.innerHTML = '';
+
+      // Add filter section
+      const filterSection = document.createElement('div');
+      filterSection.className = 'filter-section';
+      filterSection.innerHTML = '<h3>Filter Parcels</h3>';
+      
+      // Count parcels by type
+      const parcelCounts = {
+        searched: 0,
+        engaged: 0,
+        claimed: 0
+      };
+      
+      parcels.feature_parcels.features.forEach(parcel => {
+        if (parcelCounts.hasOwnProperty(parcel.properties.type)) {
+          parcelCounts[parcel.properties.type]++;
+        }
+      });
+
+      const types = ['searched', 'engaged', 'claimed'];
+      types.forEach(type => {
+        const label = document.createElement('label');
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = true;
+        checkbox.value = type;
+        
+        const colorIndicator = document.createElement('span');
+        colorIndicator.className = 'color-indicator';
+        colorIndicator.style.backgroundColor = getMarkerColor(type);
+        
+        checkbox.addEventListener('change', (e) => {
+          if (e.target.checked) {
+            activeFilters.push(type);
+          } else {
+            activeFilters = activeFilters.filter(t => t !== type);
+          }
+          // Get current search term
+          const searchTerm = filterSection.querySelector('.search-box').value.toLowerCase();
+          
+          // Update markers
+          markers.forEach(marker => {
+            const markerType = marker.get('parcelType');
+            marker.setVisible(activeFilters.includes(markerType));
+          });
+          
+          // Update cards visibility considering both filter and search
+          const cards = document.querySelectorAll('.parcel-card');
+          cards.forEach(card => {
+            const cardType = card.querySelector('p:nth-child(3)').textContent.split(': ')[1];
+            const parcelName = card.querySelector('p:nth-child(2)').textContent.toLowerCase();
+            const shouldShow = activeFilters.includes(cardType) && parcelName.includes(searchTerm);
+            card.style.display = shouldShow ? 'block' : 'none';
+          });
+        });
+        
+        label.appendChild(checkbox);
+        label.appendChild(colorIndicator);
+        label.appendChild(document.createTextNode(`${type.charAt(0).toUpperCase() + type.slice(1)} (${parcelCounts[type]})`));
+        filterSection.appendChild(label);
+      });
+      
+      // Add search box
+      const searchBox = document.createElement('input');
+      searchBox.type = 'text';
+      searchBox.className = 'search-box';
+      searchBox.placeholder = 'Search parcels by name...';
+      searchBox.addEventListener('input', (e) => {
+        const searchTerm = e.target.value.toLowerCase();
+        const cards = document.querySelectorAll('.parcel-card');
+        
+        cards.forEach(card => {
+          const parcelName = card.querySelector('p:nth-child(2)').textContent.toLowerCase(); // "Name: xxx"
+          const shouldShow = parcelName.includes(searchTerm) && 
+                           activeFilters.includes(card.querySelector('p:nth-child(3)').textContent.split(': ')[1]);
+          card.style.display = shouldShow ? 'block' : 'none';
+        });
+      });
+      
+      filterSection.appendChild(searchBox);
+      rightSidebar.appendChild(filterSection);
+      
+      parcels.feature_parcels.features.forEach(parcel => {
+        const card = document.createElement('div');
+        card.className = 'parcel-card';
+        
+        const typeIndicator = document.createElement('div');
+        typeIndicator.className = 'parcel-type-indicator';
+        typeIndicator.style.backgroundColor = getMarkerColor(parcel.properties.type);
+        
+        // Set parcel ID as data attribute
+        card.dataset.parcelId = parcel.properties.id;
+        
+        card.innerHTML = `
+          <h3>ID: ${parcel.properties.id}</h3>
+          <p>Name: ${parcel.properties.name}</p>
+          <p>Type: ${parcel.properties.type}</p>
+        `;
+
+        // Add click handler to center on marker
+        card.addEventListener('click', () => {
+          const marker = markers.find(m => m.get('parcelId') === parcel.properties.id);
+          if (marker) {
+            // Center the map
+            map.panTo(marker.getPosition());
+            
+            // Highlight the marker
+            highlightMarker(marker);
+            
+            // Remove highlight from all cards
+            document.querySelectorAll('.parcel-card').forEach(c => {
+              c.classList.remove('highlighted');
+            });
+            
+            // Highlight this card
+            card.classList.add('highlighted');
+          }
+        });
+        
+        card.appendChild(typeIndicator);
+        rightSidebar.appendChild(card);
+      });
+    }
+    
+    window.initMap = initMap;
+
+    // Add right sidebar toggle functionality
+    const rightToggleButton = document.getElementById('toggle-right-sidebar');
+    const rightSidebar = document.getElementById('right-sidebar');
+
+    rightToggleButton.addEventListener('click', () => {
+      rightSidebar.classList.toggle('collapsed');
+      rightToggleButton.classList.toggle('collapsed');
+      rightToggleButton.textContent = rightSidebar.classList.contains('collapsed') ? '←' : '→';
+      
+      // Update scroll button position when sidebar is toggled
+      const scrollButton = document.getElementById('scroll-to-top');
+      scrollButton.classList.toggle('sidebar-collapsed');
+    });
+
+    // Scroll to top functionality
+    const scrollButton = document.getElementById('scroll-to-top');
+    const rightSidebarElement = document.getElementById('right-sidebar');
+
+    rightSidebarElement.addEventListener('scroll', () => {
+      if (rightSidebarElement.scrollTop > 300) {
+        scrollButton.classList.add('visible');
+      } else {
+        scrollButton.classList.remove('visible');
+      }
+    });
+
+    scrollButton.addEventListener('click', () => {
+      rightSidebarElement.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    });
+  </script>
+</body>
+</html>
