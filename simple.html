@@ -584,7 +584,35 @@
                     this.map.setZoom(15);
 
                     this.eventBus.emit('autocompleteChanged', { location: places[0] });
+
+                    const findPolygonsContainingPoint = this.findPolygonsContainingPoint({
+                        lat: places[0].geometry.location.lat(),
+                        lng: places[0].geometry.location.lng()
+                    });
+                    console.log('findPolygonsContainingPoint', findPolygonsContainingPoint);
+
+                    if (findPolygonsContainingPoint.length > 0) {
+
+                        const bounds = new google.maps.LatLngBounds();
+
+                        findPolygonsContainingPoint.forEach(polygon => {
+                            polygon.setVisible(true);
+                            polygon.getPath().forEach(coordinate => {
+                                bounds.extend(coordinate);
+                            });
+                        });
+
+                        this.map.fitBounds(bounds);
+                    }
+
                 });
+            }
+
+            findPolygonsContainingPoint({ lat, lng }) {
+                const point = new google.maps.LatLng(lat, lng);
+                return this.polygons.filter(polygon =>
+                    google.maps.geometry.poly.containsLocation(point, polygon)
+                );
             }
 
             loadPolygons(data) {
