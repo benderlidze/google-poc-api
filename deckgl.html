@@ -524,6 +524,13 @@
                     mapId: '8f348c2f6c51a2e',
                 });
 
+                // Initialize deck.gl overlay with explicit rendering parameters
+                this.deckOverlay = new deck.GoogleMapsOverlay({
+                    layers: [],
+                    style: { zIndex: 10000 }
+                });
+                this.deckOverlay.setMap(this.map);
+
                 // Add viewport change listener
                 this.map.addListener('idle', () => {
                     if (this.viewportEnabled) {
@@ -718,43 +725,50 @@
                 this.eventBus.emit('polygonClicked', { polygon });
             }
 
-            loadParcels(parcelsData) {
-                this.markers.forEach(marker => marker.setMap(null));
-                this.markers = [];
+            loadParcels(parcelsData, polygonId) {
 
-                parcelsData.feature_parcels.features.forEach(feature => {
-                    const marker = new google.maps.Marker({
-                        position: { lat: feature.geometry.coordinates[1], lng: feature.geometry.coordinates[0] },
-                        map: this.map,
-                        title: feature.properties.name,
-                        parcelType: feature.properties.type,
-                        parcelId: feature.properties.id,
-                        icon: this.getMarkerIcon(feature.properties.type)
-                    });
 
-                    marker.addListener('click', () => this.handleMarkerClick(marker));
+                // Build data for deck.gl markers
+                const markerData = parcelsData.feature_parcels.features.map(feature => ({
+                    position: [feature.geometry.coordinates[0], feature.geometry.coordinates[1]],
+                    parcelId: feature.properties.id,
+                    parcelType: feature.properties.type
+                }));
 
-                    this.markers.push(marker);
+                // Render deck.gl ScatterplotLayer with explicit parameters for elevation
+                this.deckOverlay.setProps({
+                    layers: [
+                        new deck.ScatterplotLayer({
+                            id: 'markers-layer',
+                            data: markerData,
+                            getPosition: d => d.position,
+                            radiusUnits: 'pixels',
+                            radiusScale: 1,
+                            getRadius: 8,
+                            getFillColor: d => {
+                                return d.parcelType === 'searched' ? [255, 165, 0]
+                                    : d.parcelType === 'engaged' ? [76, 175, 80]
+                                        : d.parcelType === 'claimed' ? [33, 150, 243]
+                                            : [128, 128, 128];
+                            },
+                            lineWidthUnits: 'pixels',
+                            getLineWidth: 2,
+                            getLineColor: [255, 255, 255],
+                            stroked: true,
+                            pickable: true,
+                            updateTriggers: {
+                                getFillColor: [markerData]
+                            },
+                            onClick: info => {
+                                console.log('info', info);
+                                if (info.object) {
+                                    console.log('DeckGL Marker clicked:', info.object.parcelId);
+                                }
+                            }
+                        })
+                    ]
                 });
-            }
 
-            handleMarkerClick(marker) {
-                this.eventBus.emit('markerClicked', { parcelId: marker.get('parcelId') });
-
-                this.resetMarkers();
-                marker.setIcon(this.getHighlightedMarkerIcon(marker.get('parcelType')));
-                this.activeMarker = marker;
-            }
-
-            highlightMarkerById(parcelId) {
-                const marker = this.markers.find(marker => marker.get('parcelId') === parcelId);
-                if (marker) {
-                    this.resetMarkers();
-                    marker.setIcon(this.getHighlightedMarkerIcon(marker.get('parcelType')));
-                    this.activeMarker = marker;
-
-                    this.map.panTo(marker.getPosition());
-                }
             }
 
             getMarkersMatchingFilters(activeFilters, searchTerm) {
@@ -1272,6 +1286,8 @@
 
             const ui = new UI(eventBus);
 
+
+
             mapObj.showLoadingOverlay();
 
             fetch(`https://api.rainplan.com/api:IME/Incentives_and_jurisdictions`)
@@ -1305,12 +1321,17 @@
                 console.log('eventBus polygonClicked', data);
                 const { esri_id } = data.polygon;
 
+                // // Don't do anything if clicking the same polygon that's already selected
+                // if (mapObj.selectedPolygonId === esri_id) {
+                //     console.log('Polygon already selected');
+                //     return;
+                // }
+
                 fetch(`https://api.rainplan.com/api:IME/jurisdiction_parcels_geojson?esri_id=${esri_id}`)
                     .then(response => response.json())
                     .then(parcelsData => {
-                        console.log('parcelsData', parcelsData);
-                        // m.loadParcels(parcelsData)
-                        mapObj.loadParcels(parcelsData);
+                        console.log('parcelsData LOAD', parcelsData);
+                        mapObj.loadParcels(parcelsData, esri_id);
                         ui.displayParcels(parcelsData, data.name);
                     });
             });
