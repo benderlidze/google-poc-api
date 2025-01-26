@@ -980,7 +980,6 @@
                     ${incentive.logo_url ? `<img src="${incentive.logo_url}" alt="${incentive.name} logo">` : ''}
                         <h3>${incentive.name}</h3>
                         ID: ${incentive.id}
-                        esri_id: ${esriId}
                     `;
                     card.addEventListener('click', () => {
                         this.eventBus.emit('incentiveCardClicked', { esriId });
@@ -1110,9 +1109,9 @@
                     card.className = 'parcel-card';
                     card.dataset.parcelId = parcel.properties.id;
                     card.innerHTML = `
-                    <h3>ID: ${parcel.properties.id}</h3>
+                    <h3 style="display:none">ID: ${parcel.properties.id}</h3>
                     <p style="display:none">Name: ${parcel.properties.name}</p>
-                    <p style="display:none">Type: ${parcel.properties.type}</p>
+                    <p >Type: ${parcel.properties.type}</p>
                 `;
 
                     const typeIndicator = document.createElement('div');
