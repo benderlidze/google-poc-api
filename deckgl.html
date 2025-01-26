@@ -506,6 +506,7 @@
 
                 this.filterParcelsValues = [];
                 this.searchTerm = null;
+                this.deckMarkers = [];
             }
 
             getMap() {
@@ -738,29 +739,9 @@
                 // Render deck.gl ScatterplotLayer with explicit parameters for elevation
                 this.deckOverlay.setProps({
                     layers: [
-                        new deck.ScatterplotLayer({
-                            id: 'markers-layer',
-                            data: markerData,
-                            getPosition: d => d.position,
-                            radiusUnits: 'pixels',
-                            radiusScale: 1,
-                            getRadius: 8,
-                            getFillColor: d => {
-                                return d.parcelType === 'searched' ? [255, 165, 0]
-                                    : d.parcelType === 'engaged' ? [76, 175, 80]
-                                        : d.parcelType === 'claimed' ? [33, 150, 243]
-                                            : [128, 128, 128];
-                            },
-                            lineWidthUnits: 'pixels',
-                            getLineWidth: 2,
-                            getLineColor: [255, 255, 255],
-                            stroked: true,
+                        createScatterplotLayer('markers-layer', markerData, {
                             pickable: true,
-                            updateTriggers: {
-                                getFillColor: [markerData]
-                            },
                             onClick: info => {
-                                console.log('info', info);
                                 if (info.object) {
                                     console.log('DeckGL Marker clicked:', info.object.parcelId);
                                 }
@@ -769,6 +750,16 @@
                     ]
                 });
 
+                this.deckMarkers = parcelsData.feature_parcels.features.map(feature => {
+                    return {
+                        position: feature.geometry.coordinates,
+                        parcelId: feature.properties.id,
+                        parcelType: feature.properties.type,
+                        name: feature.properties.name,
+                        highlighted: false
+                    };
+                });
+                this.applyFilters(); // Rerender deck with new data
             }
 
             getMarkersMatchingFilters(activeFilters, searchTerm) {
@@ -819,6 +810,13 @@
                 this.filterParcelsValues = activeFilters;
                 this.searchTerm = searchTerm;
                 this.applyFilters();
+
+                const filteredData = this.deckMarkers.filter(d => {
+                    const matchType = activeFilters.includes(d.parcelType);
+                    const matchName = (d.name || '').toLowerCase().includes(searchTerm);
+                    return matchType && matchName;
+                });
+                this.updateDeckOverlay(filteredData);
             }
 
             filterParcelsByViewport() {
@@ -872,6 +870,21 @@
                     default:
                         return '#808080'; // Gray
                 }
+            }
+
+            updateDeckOverlay(data) {
+                this.deckOverlay.setProps({
+                    layers: [
+                        createScatterplotLayer('parcel-layer', data || this.deckMarkers)
+                    ]
+                });
+            }
+
+            highlightMarkerById(parcelId) {
+                this.deckMarkers.forEach(m => {
+                    m.highlighted = (m.parcelId == parcelId);
+                });
+                this.updateDeckOverlay();
             }
         }
 
@@ -1429,6 +1442,35 @@
             //     console.log('eventBus techTypeFilterChanged', ui.selectedTechTypes);
             //   });
 
+        }
+
+        function createScatterplotLayer(layerId, data, options = {}) {
+            return new deck.ScatterplotLayer({
+                id: layerId,
+                data,
+                getPosition: d => d.position,
+                getRadius: d => d.highlighted ? 12 : 8,
+                radiusUnits: 'pixels',
+                radiusScale: options.radiusScale || 1,
+                getFillColor: d => {
+                    switch (d.parcelType) {
+                        case 'searched': return [255, 165, 0];
+                        case 'engaged': return [76, 175, 80];
+                        case 'claimed': return [33, 150, 243];
+                        default: return [128, 128, 128];
+                    }
+                },
+                stroked: true,
+                getLineColor: [255, 255, 255], // White stroke
+                getLineWidth: d => d.highlighted ? 4 : 3, // Thicker stroke
+                lineWidthUnits: 'pixels',
+                lineWidthScale: 1,
+                pickable: !!options.pickable,
+                onClick: options.onClick || null,
+                updateTriggers: {
+                    getFillColor: [data]
+                }
+            });
         }
 
     </script>
