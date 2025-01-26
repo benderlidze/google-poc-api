@@ -7,6 +7,7 @@
         src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCo85RezTo2m0-HlspByO-urwPIZDft2bM&libraries=places&callback=initMap&v=3.58"
         defer="defer"></script>
     <script src="https://unpkg.com/@googlemaps/markerclusterer@2.5.1/dist/index.min.js"></script>
+    <script src="https://unpkg.com/deck.gl@^9.0.0/dist.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -1282,8 +1283,8 @@
                     ui.displayIncentives(data);
                 });
 
-            fetch(`https://api.rainplan.com/vault/1qbvU_T3/vD4h9FslLVwhjjvZMJyGshqeTjI/iCxsuQ../jurisdictions-reduced+copy.geojson`)
-            //fetch(`jurisdictions-reduced copy.geojson`)
+            //fetch(`https://api.rainplan.com/vault/1qbvU_T3/vD4h9FslLVwhjjvZMJyGshqeTjI/iCxsuQ../jurisdictions-reduced+copy.geojson`)
+            fetch(`jurisdictions-reduced copy.geojson`)
                 .then(response => response.json())
                 .then(data => {
                     console.log('data', data);
