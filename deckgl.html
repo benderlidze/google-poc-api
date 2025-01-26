@@ -486,21 +486,25 @@
                         fillOpacity: 0.2,
                         strokeColor: '#1976D2',
                         strokeWeight: 1,
-                        strokeOpacity: 0.7
+                        strokeOpacity: 0.7,
+                        clickable: true
                     },
                     hover: {
                         fillColor: '#2196F3',
                         fillOpacity: 0.2,
                         strokeColor: '#1976D2',
                         strokeWeight: 4,
-                        strokeOpacity: 1
+                        strokeOpacity: 1,
+                        clickable: true
+
                     },
                     selected: {
                         fillColor: '#4CAF50',
                         fillOpacity: 0.2,
                         strokeWeight: 4,
                         strokeOpacity: 1,
-                        strokeColor: '#1976D2'
+                        strokeColor: '#1976D2',
+                        clickable: false
                     }
                 };
 
@@ -649,7 +653,8 @@
                             paths: paths,
                             map: this.map,
                             ...this.polygonStyles.default,
-                            visible: false
+                            visible: false,
+                            clickable: true
                         });
 
                         polygon.id = feature.id;
@@ -877,7 +882,7 @@
                     layers: [
                         createScatterplotLayer('parcel-layer', sortedData, {
                             pickable: true,
-                            onClick: (info, event) => {
+                            onClick: info => {
 
                                 console.log('MARKER CLICK ',);
                                 if (info.object) {
@@ -1371,12 +1376,7 @@
                 console.log('eventBus polygonClicked', data);
                 const { esri_id } = data.polygon;
 
-                // // Don't do anything if clicking the same polygon that's already selected
-                // if (mapObj.selectedPolygonId === esri_id) {
-                //     console.log('Polygon already selected');
-                //     return;
-                // }
-                if (selectedPolygon !== esri_id) {
+                if (selectedPolygon !== esri_id) { // Only load parcels if a different polygon is clicked
                     fetch(`https://api.rainplan.com/api:IME/jurisdiction_parcels_geojson?esri_id=${esri_id}`)
                         .then(response => response.json())
                         .then(parcelsData => {
@@ -1384,7 +1384,6 @@
                             mapObj.loadParcels(parcelsData, esri_id);
                             ui.displayParcels(parcelsData, data.name);
                         });
-
                     selectedPolygon = esri_id
                 }
             });
@@ -1461,22 +1460,16 @@
                 lineWidthScale: 1,
                 pickable: !!options.pickable,
                 onClick: (info, event) => {
-
-                    console.log('info,event', info, event);
-                    event.preventDefault()
+                    console.log('info', info, event);
 
                     if (info.object) {
                         // Stop both propagation and default behavior
-                        event.stopPropagation();
-                        event.preventDefault();
-
-                        // Add your custom click handling here
                         console.log('Marker clicked:', info.object.parcelId);
                     }
 
                     // Call custom onClick handler if provided
                     if (options.onClick) {
-                        options.onClick(info, event);
+                        options.onClick(info);
                     }
                 },
                 getElevation: d => d.highlighted ? 1 : 0,

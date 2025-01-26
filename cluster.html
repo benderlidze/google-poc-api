@@ -1,0 +1,1456 @@
+<!doctype html>
+<html>
+
+<head>
+  <title>Jurisdiction Map with Incentives</title>
+  <script
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCo85RezTo2m0-HlspByO-urwPIZDft2bM&libraries=places&callback=initMap&v=3.58"
+    defer="defer"></script>
+  <script src="https://unpkg.com/@googlemaps/markerclusterer@2.5.1/dist/index.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    }
+
+    html,
+    body {
+      height: 100%;
+      overflow: hidden;
+      position: relative;
+    }
+
+    #app-bar {
+      background: white;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      display: flex;
+      align-items: center;
+
+      z-index: 1000;
+      height: 80px;
+      /* Set fixed height for app-bar */
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+    }
+
+    #app-bar img {
+      height: 40px;
+      width: auto;
+    }
+
+    #jurisdiction-name {
+      flex: 1;
+      text-align: center;
+      font-size: 1.2rem;
+      font-weight: 500;
+      color: #1a202c;
+    }
+
+    #container {
+      display: flex;
+      height: calc(100vh - 80px);
+      /* Subtract app-bar height from viewport height */
+    }
+
+    #map {
+      flex: 1;
+      height: 100%;
+      /* Will fill container height */
+    }
+
+    #left-sidebar {
+      width: 400px;
+      overflow-y: auto;
+      padding: 24px;
+      background: #f8fafc;
+      border-right: 1px solid #e2e8f0;
+      transition: all 0.3s ease;
+      display: none;
+      /* Hide initially */
+      height: 100%;
+      scrollbar-width: none;
+    }
+
+    #right-sidebar {
+      width: 400px;
+      overflow-y: auto;
+      padding: 24px;
+      background: #f8fafc;
+      border-left: 1px solid #e2e8f0;
+      transition: all 0.3s ease;
+      display: none;
+      /* Hide initially */
+      height: 100%;
+    }
+
+    #left-sidebar.collapsed,
+    #right-sidebar.collapsed {
+      width: 0;
+      padding: 0;
+      border: none;
+      overflow: hidden;
+    }
+
+    .toggle-sidebar {
+      position: fixed;
+      /* Change from absolute to fixed */
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 1000;
+      padding: 8px 12px;
+      background: white;
+      border: 1px solid #e2e8f0;
+      cursor: pointer;
+      box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
+      display: none;
+    }
+
+    #toggle-left-sidebar {
+      left: 400px;
+      /* Match the sidebar width */
+      border-radius: 0 4px 4px 0;
+    }
+
+    #toggle-right-sidebar {
+      right: 410px;
+      border-radius: 4px 0 0 4px;
+    }
+
+    #toggle-left-sidebar.collapsed {
+      left: 0;
+    }
+
+    #toggle-right-sidebar.collapsed {
+      right: 0;
+    }
+
+    .filter-section {
+      background: white;
+      padding: 16px;
+      margin-bottom: 16px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .filter-section label {
+      display: flex;
+      align-items: center;
+      margin: 8px 0;
+      cursor: pointer;
+    }
+
+    .filter-section input[type="checkbox"] {
+      margin-right: 8px;
+    }
+
+    .search-box {
+      width: 100%;
+      padding: 8px 12px;
+      margin: 12px 0;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    .search-box:focus {
+      outline: none;
+      border-color: #2196F3;
+      box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
+    }
+
+    .filter-section .color-indicator {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 8px;
+    }
+
+    .parcel-card {
+      position: relative;
+      background: white;
+      padding: 24px;
+      margin-bottom: 16px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .highlighted {
+      background: #e3f2fd;
+      box-shadow: 0 4px 8px rgba(33, 150, 243, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .parcel-type-indicator {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+    }
+
+    .card {
+      background: white;
+      padding: 24px;
+      margin-bottom: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      transition: transform 0.2s, box-shadow 0.2s;
+      cursor: pointer;
+    }
+
+    .card:hover {
+
+      transform: translateY(-2px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+
+    .card h3 {
+      margin-bottom: 12px;
+      color: #1a202c;
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+
+    .card img {
+      max-width: 120px;
+      height: auto;
+      margin-bottom: 16px;
+      border-radius: 8px;
+    }
+
+    .card p {
+      color: #4a5568;
+      line-height: 1.6;
+      margin-bottom: 12px;
+      font-size: 0.95rem;
+    }
+
+    .card a {
+      display: inline-block;
+      color: #3182ce;
+      text-decoration: none;
+      font-weight: 500;
+      padding: 8px 0;
+      position: relative;
+    }
+
+    .card a::after {
+      content: '';
+      position: absolute;
+      width: 100%;
+      height: 2px;
+      bottom: 0;
+      left: 0;
+      background-color: #3182ce;
+      transform: scaleX(0);
+      transform-origin: bottom right;
+      transition: transform 0.3s ease-out;
+    }
+
+    .card a:hover::after {
+      transform: scaleX(1);
+      transform-origin: bottom left;
+    }
+
+    #scroll-to-top {
+      position: fixed;
+      right: 420px;
+      /* Position it next to the right sidebar */
+      bottom: 20px;
+      width: 40px;
+      height: 40px;
+      background-color: #2196F3;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      display: none;
+      /* Hidden by default */
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s ease;
+      z-index: 1000;
+    }
+
+    #scroll-to-top:hover {
+      background-color: #1976D2;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    #scroll-to-top.visible {
+      display: flex;
+    }
+
+    #scroll-to-top.sidebar-collapsed {
+      right: 20px;
+    }
+
+    .search-bar {
+      display: flex;
+    }
+
+    .filters-container {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .top-container {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px;
+      flex: 1
+    }
+
+    .payout {
+      background: #f7fafc;
+      padding: 8px 12px;
+      border-radius: 6px;
+      display: inline-block;
+      margin: 4px 8px 4px 0;
+      font-size: 0.9rem;
+      color: #2d3748;
+    }
+
+    .button {
+      border: 1px solid #195bbc;
+      padding: 10px 20px;
+      border-radius: 4px;
+      background-color: white;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .button:hover {
+      background-color: #d6e7ff;
+    }
+
+    .button.main {
+      background-color: #195bbc;
+      color: white;
+    }
+
+    .dropdown {
+      position: absolute;
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      padding: 8px;
+      display: none;
+      z-index: 1000;
+      margin-top: 4px;
+      min-width: 200px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .dropdown.show {
+      display: block;
+    }
+
+    .dropdown label {
+      display: block;
+      padding: 6px 8px;
+      margin: 2px 0;
+      cursor: pointer;
+    }
+
+    .dropdown label:hover {
+      background-color: #f7fafc;
+    }
+
+    .dropdown input[type="checkbox"] {
+      margin-right: 8px;
+    }
+
+    .map-loading-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .loading-spinner {
+      width: 50px;
+      height: 50px;
+      border: 5px solid #f3f3f3;
+      border-top: 5px solid #3498db;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+
+  <div id="app-bar">
+    <!-- <div id="jurisdiction-name">Select a jurisdiction</div> -->
+
+    <div class="top-container">
+      <div class="filters-container">
+        <div id="search-container" style=" width: 300px;">
+          <input id="pac-input" type="text" placeholder="Search for a location" style="
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            font-size: 14px;
+            background: white;
+          ">
+        </div>
+        <!-- <div class="button filter" id="">See Searches by type</div>
+                <div class="button filter" id="prop-type">Property Type</div>
+                <div class="button filter" id="tech-type">Technology Type</div> -->
+      </div>
+      <!-- <div class="main button"> Search</div> -->
+    </div>
+
+  </div>
+  <div id="container">
+    <div id="left-sidebar"></div><button id="toggle-left-sidebar" class="toggle-sidebar">←</button>
+    <div id="map"></div>
+    <div id="right-sidebar"></div><button id="toggle-right-sidebar" class="toggle-sidebar">→</button> <button
+      id="scroll-to-top" title="Scroll to top">↑↑</button>
+  </div>
+  <script>
+
+    const center = { lat: 39, lng: -94 };
+    const zoom = 4;
+
+    // Event Bus 
+    class EventBus {
+      constructor() {
+        this.events = {};
+      }
+
+      on(event, callback) {
+        if (!this.events[event]) {
+          this.events[event] = [];
+        }
+        this.events[event].push(callback);
+      }
+
+      emit(event, data) {
+        if (this.events[event]) {
+          this.events[event].forEach(callback => callback(data));
+        }
+      }
+    }
+
+    // Map class
+    class GMap {
+
+      constructor(eventBus) {
+        this.eventBus = eventBus;
+        this.map = null;
+        this.polygons = [];
+        this.markers = [];
+        this.activeMarker = null;
+        this.selectedPolygonId = null;
+        this.viewportEnabled = false;
+        this.markerClusterer = null;
+
+        this.polygonStyles = {
+          default: {
+            fillColor: '#2196F3',
+            fillOpacity: 0.2,
+            strokeColor: '#1976D2',
+            strokeWeight: 1,
+            strokeOpacity: 0.7
+          },
+          hover: {
+            fillColor: '#2196F3',
+            fillOpacity: 0.2,
+            strokeColor: '#1976D2',
+            strokeWeight: 4,
+            strokeOpacity: 1
+          },
+          selected: {
+            fillColor: '#4CAF50',
+            fillOpacity: 0.2,
+            strokeWeight: 4,
+            strokeOpacity: 1,
+            strokeColor: '#1976D2'
+          }
+        };
+
+        this.filterParcelsValues = [];
+        this.searchTerm = null;
+      }
+
+      getMap() {
+        return this.map;
+      }
+
+      async initialize() {
+        await this.initMap();
+        this.initAutocomplete();
+      }
+
+      initMap() {
+        this.map = new google.maps.Map(document.getElementById("map"), {
+          zoom: zoom,
+          center: center,
+          mapId: '8f348c2f6c51a2e',
+        });
+
+        // Add viewport change listener
+        this.map.addListener('idle', () => {
+          if (this.viewportEnabled) {
+            this.filterParcelsByViewport();
+          }
+        });
+      }
+
+      showLoadingOverlay() {
+        const overlay = document.createElement('div');
+        overlay.id = 'map-loading-overlay';
+        overlay.className = 'map-loading-overlay';
+
+        const spinner = document.createElement('div');
+        spinner.className = 'loading-spinner';
+
+        overlay.appendChild(spinner);
+        document.getElementById('map').appendChild(overlay);
+      }
+
+      hideLoadingOverlay() {
+        const overlay = document.getElementById('map-loading-overlay');
+        if (overlay) {
+          overlay.remove();
+        }
+      }
+
+      initAutocomplete() {
+        const input = document.getElementById('pac-input');
+        const searchBox = new google.maps.places.SearchBox(input);
+
+        //this.map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
+
+        this.map.addListener('bounds_changed', () => {
+          searchBox.setBounds(this.map.getBounds());
+        });
+
+        searchBox.addListener('places_changed', () => {
+          const places = searchBox.getPlaces();
+
+          if (places.length === 0) {
+            return;
+          }
+          console.log('places', places);
+
+          const bounds = new google.maps.LatLngBounds();
+          places.forEach(place => {
+            if (!place.geometry || !place.geometry.location) {
+              console.log("Returned place contains no geometry");
+              return;
+            }
+            if (place.geometry.viewport) {
+              bounds.union(place.geometry.viewport);
+            } else {
+              bounds.extend(place.geometry.location);
+            }
+          });
+          this.map.fitBounds(bounds);
+          this.map.setZoom(15);
+
+          this.eventBus.emit('autocompleteChanged', { location: places[0] });
+
+          const findPolygonsContainingPoint = this.findPolygonsContainingPoint({
+            lat: places[0].geometry.location.lat(),
+            lng: places[0].geometry.location.lng()
+          });
+          console.log('findPolygonsContainingPoint', findPolygonsContainingPoint);
+
+          if (findPolygonsContainingPoint.length > 0) {
+
+            const bounds = new google.maps.LatLngBounds();
+            findPolygonsContainingPoint.forEach(polygon => {
+              polygon.setVisible(true);
+              polygon.getPath().forEach(coordinate => {
+                bounds.extend(coordinate);
+              });
+            });
+
+            this.map.fitBounds(bounds);
+          }
+
+          // FILL Programs panel with data
+          this.eventBus.emit('autocompleteChanged', { findPolygonsContainingPoint });
+
+        });
+      }
+
+      findPolygonsContainingPoint({ lat, lng }) {
+        const point = new google.maps.LatLng(lat, lng);
+        return this.polygons.filter(polygon =>
+          google.maps.geometry.poly.containsLocation(point, polygon)
+        );
+      }
+
+      loadPolygons(data) {
+
+        console.log('data.features', data.features);
+
+        data.features
+          .sort((a, b) => {
+            return b.properties.shape_area - a.properties.shape_area;
+          })
+          .forEach(feature => {
+
+            // For MultiPolygon, create polygon paths for each ring
+            const paths = feature.geometry.type === "MultiPolygon"
+              // Get the outer ring of each polygon
+              ? feature.geometry.coordinates.map(polygonRing => this.coordsToLatLng(polygonRing[0]))
+              : this.coordsToLatLng(feature.geometry.coordinates[0])
+
+            const polygon = new google.maps.Polygon({
+              paths: paths,
+              map: this.map,
+              ...this.polygonStyles.default,
+              visible: false
+            });
+
+            polygon.id = feature.id;
+            polygon.esri_id = feature.properties.esri_id;
+            polygon.name = feature.properties.name;
+
+            // Add hover events
+            polygon.addListener('mouseover', () => {
+              if (polygon.esri_id !== this.selectedPolygonId) {
+                polygon.setOptions(this.polygonStyles.hover);
+              }
+            });
+
+            polygon.addListener('mouseout', () => {
+              if (polygon.esri_id !== this.selectedPolygonId) {
+                polygon.setOptions(this.polygonStyles.default);
+              }
+            });
+
+            polygon.addListener('click', () => {
+              console.log('polygon', polygon);
+              this.handlePolygonClick(polygon)
+
+            });
+
+            this.polygons.push(polygon);
+          });
+      }
+
+      hideAllPolygons() {
+        this.polygons.forEach(polygon => polygon.setVisible(false));
+      }
+
+
+      coordsToLatLng(coords) {
+        return coords.map(coord => ({
+          lat: coord[1],
+          lng: coord[0]
+        }));
+      }
+
+      showPolygonById(esri_id) {
+        console.log('this.polygons', this.polygons);
+        console.log('esri_id', esri_id);
+
+        this.hideAllPolygons()
+
+        const polygon = this.polygons.find(p => p.esri_id === +esri_id);
+
+        console.log('polygon', polygon);
+        if (polygon) {
+          polygon.setVisible(true);
+
+          const bounds = new google.maps.LatLngBounds();
+          polygon.getPath().forEach(coordinate => {
+            bounds.extend(coordinate);
+          });
+          this.map.fitBounds(bounds);
+
+          this.handlePolygonClick(polygon);
+        }
+      }
+
+      handlePolygonClick(polygon) {
+        // Reset previous selected polygon
+        if (this.selectedPolygonId) {
+          const previousPolygon = this.polygons.find(p => p.esri_id === this.selectedPolygonId);
+          if (previousPolygon) {
+            previousPolygon.setOptions(this.polygonStyles.default);
+          }
+        }
+
+        // Set new selected polygon
+        this.selectedPolygonId = polygon.esri_id;
+        polygon.setOptions(this.polygonStyles.selected);
+
+        this.eventBus.emit('polygonClicked', { polygon });
+      }
+
+      loadParcels(parcelsData) {
+        // Clear existing markers and clusterer
+        if (this.markerClusterer) {
+          this.markerClusterer.clearMarkers();
+        }
+        this.markers.forEach(marker => marker.setMap(null));
+        this.markers = [];
+
+        // Create markers
+        parcelsData.feature_parcels.features.forEach(feature => {
+          const marker = new google.maps.Marker({
+            position: { lat: feature.geometry.coordinates[1], lng: feature.geometry.coordinates[0] },
+            title: feature.properties.name,
+            parcelType: feature.properties.type,
+            parcelId: feature.properties.id,
+            icon: this.getMarkerIcon(feature.properties.type)
+          });
+
+          marker.addListener('click', () => this.handleMarkerClick(marker));
+          this.markers.push(marker);
+        });
+
+        // Initialize or update MarkerClusterer
+        if (this.markerClusterer) {
+          this.markerClusterer.clearMarkers();
+          this.markerClusterer.addMarkers(this.markers);
+        } else {
+          this.markerClusterer = new markerClusterer.MarkerClusterer({
+            map: this.map,
+            markers: this.markers,
+            algorithm: new markerClusterer.SuperClusterAlgorithm({
+              radius: 200,
+              maxZoom: 16
+            }),
+            renderer: {
+              render: ({ count, position }) => 
+                new google.maps.Marker({
+                  position,
+                  icon: {
+                    path: google.maps.SymbolPath.CIRCLE,
+                    scale: Math.max(12, Math.min(count, 20)),
+                    fillColor: "#4285F4",
+                    fillOpacity: 0.7,
+                    strokeWeight: 1,
+                    strokeColor: "#FFFFFF"
+                  },
+                  label: {
+                    text: String(count),
+                    color: "white",
+                    fontSize: "10px"
+                  },
+                  zIndex: Number(google.maps.Marker.MAX_ZINDEX) + count
+                })
+            }
+          });
+        }
+      }
+
+      applyFilters() {
+        const filteredMarkers = this.getMarkersMatchingFilters(
+          this.filterParcelsValues || [],
+          this.searchTerm || ''
+        );
+
+        const viewportMarkers = this.getMarkersInViewport();
+
+        // Create sets for efficient look-up
+        const filteredSet = new Set(filteredMarkers);
+        const viewportSet = new Set(viewportMarkers);
+
+        // Update marker visibility and clusterer
+        const visibleMarkers = this.markers.filter(marker => {
+          const isVisible = filteredSet.has(marker) && viewportSet.has(marker);
+          return isVisible;
+        });
+
+        if (this.markerClusterer) {
+          this.markerClusterer.clearMarkers();
+          this.markerClusterer.addMarkers(visibleMarkers);
+        }
+
+        // Collect visible parcel IDs
+        const visibleParcels = visibleMarkers.map(m => m.get('parcelId'));
+        this.eventBus.emit('viewportFiltered', { visibleParcels });
+      }
+
+      handleMarkerClick(marker) {
+        this.eventBus.emit('markerClicked', { parcelId: marker.get('parcelId') });
+
+        this.resetMarkers();
+        marker.setIcon(this.getHighlightedMarkerIcon(marker.get('parcelType')));
+        this.activeMarker = marker;
+      }
+
+      highlightMarkerById(parcelId) {
+        const marker = this.markers.find(marker => marker.get('parcelId') === parcelId);
+        if (marker) {
+          this.resetMarkers();
+          marker.setIcon(this.getHighlightedMarkerIcon(marker.get('parcelType')));
+          this.activeMarker = marker;
+
+          this.map.panTo(marker.getPosition());
+        }
+      }
+
+      getMarkersMatchingFilters(activeFilters, searchTerm) {
+        return this.markers.filter(marker => {
+          const parcelType = marker.get('parcelType');
+          const parcelName = marker.getTitle().toLowerCase();
+          return activeFilters.includes(parcelType) && parcelName.includes(searchTerm);
+        });
+      }
+
+      getMarkersInViewport() {
+        const bounds = this.map.getBounds();
+        if (!bounds || !this.viewportEnabled) return this.markers;
+
+        return this.markers.filter(marker => {
+          const position = marker.getPosition();
+          return bounds.contains(position);
+        });
+      }
+
+      filterParcels(activeFilters, searchTerm) {
+        this.filterParcelsValues = activeFilters;
+        this.searchTerm = searchTerm;
+        this.applyFilters();
+      }
+
+      filterParcelsByViewport() {
+        this.applyFilters();
+      }
+
+      setViewportFilter(enabled) {
+        this.viewportEnabled = enabled;
+        this.applyFilters();
+      }
+
+      resetMarkers() {
+        if (this.activeMarker) {
+          this.activeMarker.setIcon(this.getMarkerIcon(this.activeMarker.get('parcelType')));
+          this.activeMarker = null;
+        }
+      }
+
+      getMarkerIcon(type) {
+        return {
+          path: google.maps.SymbolPath.CIRCLE,
+          fillColor: this.getMarkerColor(type),
+          fillOpacity: 1,
+          strokeWeight: 2,
+          strokeColor: '#FFFFFF',
+          strokeOpacity: 0.7,
+          scale: 7
+        };
+      }
+
+      getHighlightedMarkerIcon(type) {
+        return {
+          path: google.maps.SymbolPath.CIRCLE,
+          fillColor: this.getMarkerColor(type),
+          fillOpacity: 1,
+          strokeWeight: 3,
+          strokeColor: '#FFFFFF',
+          strokeOpacity: 0.9,
+          scale: 11
+        };
+      }
+
+      getMarkerColor(type) {
+        switch (type) {
+          case 'searched':
+            return '#FFA500'; // Orange
+          case 'engaged':
+            return '#4CAF50'; // Green
+          case 'claimed':
+            return '#2196F3'; // Blue
+          default:
+            return '#808080'; // Gray
+        }
+      }
+    }
+
+    // UI class
+    class UI {
+      constructor(eventBus) {
+        this.eventBus = eventBus;
+        this.leftSidebar = document.getElementById('left-sidebar');
+        this.rightSidebar = document.getElementById('right-sidebar');
+        this.leftToggleButton = document.getElementById('toggle-left-sidebar');
+        this.rightToggleButton = document.getElementById('toggle-right-sidebar');
+        this.scrollButton = document.getElementById('scroll-to-top');
+        // this.jurisdictionName = document.getElementById('jurisdiction-name');
+
+        // this.techType = document.getElementById('tech-type');
+        // this.propType = document.getElementById('prop-type');
+
+        this.activeDropdown = null;
+        this.selectedPropertyTypes = [];
+        this.selectedTechTypes = [];
+
+        this.initUI();
+        this.initEventListeners();
+      }
+
+      initUI() {
+        this.leftSidebar.style.display = 'none';
+        this.rightSidebar.style.display = 'none';
+        this.leftToggleButton.style.display = 'none';
+        this.rightToggleButton.style.display = 'none';
+      }
+
+      initEventListeners() {
+        this.leftToggleButton.addEventListener('click', () => this.toggleSidebar(this.leftSidebar));
+        this.rightToggleButton.addEventListener('click', () => this.toggleSidebar(this.rightSidebar));
+        this.scrollButton.addEventListener('click', () => this.scrollToTop());
+        this.rightSidebar.addEventListener('scroll', () => {
+          if (this.rightSidebar.scrollTop > 300) {
+            this.scrollButton.classList.add('visible');
+          } else {
+            this.scrollButton.classList.remove('visible');
+          }
+        });
+
+        // Add click event listener to close dropdowns when clicking outside
+        document.addEventListener('click', (e) => {
+          if (!e.target.closest('.dropdown') && !e.target.closest('.filter')) {
+            this.hideDropdowns();
+          }
+        });
+      }
+
+      toggleSidebar(sidebar) {
+        sidebar.classList.toggle('collapsed');
+        if (sidebar === this.leftSidebar) {
+          this.leftToggleButton.textContent = sidebar.classList.contains('collapsed') ? '→' : '←';
+          this.leftToggleButton.style.left = sidebar.classList.contains('collapsed') ? '0' : '400px';
+        } else if (sidebar === this.rightSidebar) {
+          this.rightToggleButton.textContent = sidebar.classList.contains('collapsed') ? '←' : '→';
+          this.rightToggleButton.style.right = sidebar.classList.contains('collapsed') ? '0' : '400px';
+        }
+      }
+
+      scrollToTop() {
+        this.rightSidebar.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      addResetMapButton() {
+        const resetButton = document.createElement('button');
+        resetButton.textContent = 'Reset Map';
+        resetButton.className = 'button main';
+        resetButton.style.width = '100%';
+        resetButton.style.marginBottom = '10px';
+
+        resetButton.addEventListener('click', () => {
+          console.log('resetMap');
+          this.eventBus.emit('resetMapClicked');
+        });
+        this.leftSidebar.appendChild(resetButton);
+      }
+
+      buildIncentiveFilters(incentives) {
+
+        const filterSection = document.createElement('div');
+
+        const searchBox = document.createElement('input');
+        searchBox.type = 'text';
+        searchBox.className = 'search-box';
+        searchBox.placeholder = 'Search Incentive by name...';
+        searchBox.addEventListener('input', () => this.filterIncentive());
+
+        filterSection.appendChild(searchBox);
+
+        const viewportFilter = document.createElement('label');
+        viewportFilter.style.marginTop = '16px';
+        viewportFilter.style.display = 'block';
+
+        filterSection.appendChild(viewportFilter);
+        this.leftSidebar.appendChild(filterSection);
+      }
+
+      filterIncentive() {
+        const searchTerm = document.querySelector('#left-sidebar .search-box').value.toLowerCase();
+        const cards = document.querySelectorAll('.card');
+        cards.forEach(card => {
+          const incentiveName = card.querySelector('h3').textContent.toLowerCase();
+          if (incentiveName.includes(searchTerm)) {
+            card.style.display = 'block';
+          } else {
+            card.style.display = 'none';
+          }
+        });
+      }
+
+      displayIncentives(incentives) {
+        console.log('incentives', incentives);
+        // this.leftSidebar.innerHTML = '';
+        incentives.forEach(incentive => {
+
+          const hasEsriId = incentive.jurisdiction_v2?.esri_id && incentive.jurisdiction_v2.esri_id !== 'N/A';
+          // card.className = `card${hasEsriId ? '' : ' disabled'}`;
+          // Store the esri_id with the card (needed for functionality but not displayed)
+          const esriId = hasEsriId ? incentive.jurisdiction_v2.esri_id : '';
+
+          const card = document.createElement('div');
+          card.className = 'card';
+          card.innerHTML = `
+                    ${incentive.logo_url ? `<img src="${incentive.logo_url}" alt="${incentive.name} logo">` : ''}
+                        <h3>${incentive.name}</h3>
+                        ID: ${incentive.id}
+                    `;
+          card.addEventListener('click', () => {
+            this.eventBus.emit('incentiveCardClicked', { esriId });
+          });
+          this.leftSidebar.appendChild(card);
+        });
+
+        this.leftSidebar.style.display = 'block';
+        this.leftToggleButton.style.display = 'block';
+      }
+
+      displayParcels(parcelsData, name) {
+        console.log('displayParcels', parcelsData);
+        // Initialize filters only if they haven't been created yet
+        if (!this.filtersInitialized) {
+          this.buildFilters(parcelsData);
+          this.filtersInitialized = true;
+        } else {
+          // Update filter counts only
+          this.updateFilterCounts(parcelsData);
+        }
+
+        // Always update the parcel cards
+        this.updateParcelCards(parcelsData);
+        this.filterParcels();
+
+        this.leftSidebar.style.display = 'block';
+        this.rightSidebar.style.display = 'block';
+        this.leftToggleButton.style.display = 'block';
+        this.rightToggleButton.style.display = 'block';
+      }
+
+      updateFilterCounts(parcelsData) {
+        const parcelCounts = {
+          searched: 0,
+          engaged: 0,
+          claimed: 0
+        };
+
+        parcelsData.feature_parcels.features.forEach(parcel => {
+          if (parcelCounts.hasOwnProperty(parcel.properties.type)) {
+            parcelCounts[parcel.properties.type]++;
+          }
+        });
+
+        // Update the count in each filter label
+        const labels = document.querySelectorAll('.filter-section label');
+        labels.forEach(label => {
+          const type = label.querySelector('input').value;
+          const text = label.lastChild;
+          text.textContent = ` ${type.charAt(0).toUpperCase() + type.slice(1)} (${parcelCounts[type]})`;
+        });
+      }
+
+      buildFilters(parcelsData) {
+        const filterSection = document.createElement('div');
+        filterSection.className = 'filter-section';
+        filterSection.innerHTML = '<h3>Filter Parcels</h3>';
+
+        const parcelCounts = {
+          searched: 0,
+          engaged: 0,
+          claimed: 0
+        };
+
+        parcelsData.feature_parcels.features.forEach(parcel => {
+          if (parcelCounts.hasOwnProperty(parcel.properties.type)) {
+            parcelCounts[parcel.properties.type]++;
+          }
+        });
+
+        const types = ['searched', 'engaged', 'claimed'];
+        types.forEach(type => {
+          const label = document.createElement('label');
+          const checkbox = document.createElement('input');
+          checkbox.type = 'checkbox';
+          checkbox.checked = true;
+          checkbox.value = type;
+
+          const colorIndicator = document.createElement('span');
+          colorIndicator.className = 'color-indicator';
+          colorIndicator.style.backgroundColor = this.getMarkerColor(type);
+
+          checkbox.addEventListener('change', () => this.filterParcels());
+
+          label.appendChild(checkbox);
+          label.appendChild(colorIndicator);
+          label.appendChild(document.createTextNode(`${type.charAt(0).toUpperCase() + type.slice(1)} (${parcelCounts[type]})`));
+          filterSection.appendChild(label);
+        });
+
+        const searchBox = document.createElement('input');
+        searchBox.type = 'text';
+        searchBox.className = 'search-box';
+        searchBox.placeholder = 'Search parcels by name...';
+        searchBox.addEventListener('input', () => this.filterParcels());
+
+        filterSection.appendChild(searchBox);
+
+        const viewportFilter = document.createElement('label');
+        viewportFilter.style.marginTop = '16px';
+        viewportFilter.style.display = 'block';
+
+        const viewportCheckbox = document.createElement('input');
+        viewportCheckbox.type = 'checkbox';
+        viewportCheckbox.checked = false;
+
+        viewportFilter.appendChild(viewportCheckbox);
+        viewportFilter.appendChild(document.createTextNode('Show only parcels in viewport'));
+
+        viewportCheckbox.addEventListener('change', (e) => {
+          this.eventBus.emit('viewportFilterToggled', { enabled: e.target.checked });
+        });
+
+        filterSection.appendChild(viewportFilter);
+        this.rightSidebar.appendChild(filterSection);
+      }
+
+      updateParcelCards(parcelsData) {
+        // Clear existing parcel cards section
+        const existingParcelCards = document.querySelectorAll('.parcel-card');
+        existingParcelCards.forEach(card => card.remove());
+
+        // Build new parcel cards
+        parcelsData.feature_parcels.features.forEach(parcel => {
+          const card = document.createElement('div');
+          card.className = 'parcel-card';
+          card.dataset.parcelId = parcel.properties.id;
+          card.innerHTML = `
+                    <h3 style="display:none">ID: ${parcel.properties.id}</h3>
+                    <p style="display:none">Name: ${parcel.properties.name}</p>
+                    <p >Type: ${parcel.properties.type}</p>
+                `;
+
+          const typeIndicator = document.createElement('div');
+          typeIndicator.className = 'parcel-type-indicator';
+          typeIndicator.style.backgroundColor = this.getMarkerColor(parcel.properties.type);
+          card.appendChild(typeIndicator);
+
+          card.addEventListener('click', () => this.eventBus.emit('parcelCardClicked', { parcelId: parcel.properties.id }));
+
+          this.rightSidebar.appendChild(card);
+        });
+      }
+
+      filterParcels() {
+        const activeFilters = [];
+        const checkboxes = document.querySelectorAll('#right-sidebar .filter-section input[type="checkbox"]:checked');
+        checkboxes.forEach(checkbox => activeFilters.push(checkbox.value));
+
+        const searchTerm = document.querySelector('#right-sidebar .filter-section .search-box').value.toLowerCase();
+
+        const cards = document.querySelectorAll('.parcel-card');
+        cards.forEach(card => {
+          const parcelId = card.dataset.parcelId;
+          const parcelType = card.querySelector('p:nth-child(3)').textContent.split(': ')[1];
+          const parcelName = card.querySelector('p:nth-child(2)').textContent.toLowerCase();
+
+          if (activeFilters.includes(parcelType) && parcelName.includes(searchTerm)) {
+            card.style.display = 'block';
+          } else {
+            card.style.display = 'none';
+          }
+        });
+
+        this.eventBus.emit('filterParcels', { activeFilters, searchTerm });
+      }
+
+      highlightParcelCard(parcelId) {
+        const cards = document.querySelectorAll('.parcel-card');
+        cards.forEach(card => {
+          if (+card.dataset.parcelId === +parcelId) {
+            card.classList.add('highlighted');
+            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          } else {
+            card.classList.remove('highlighted');
+          }
+        });
+      }
+
+      getMarkerColor(type) {
+        switch (type) {
+          case 'searched':
+            return '#FFA500'; // Orange
+          case 'engaged':
+            return '#4CAF50'; // Green
+          case 'claimed':
+            return '#2196F3'; // Blue
+          default:
+            return '#808080'; // Gray
+        }
+      }
+
+      initFilter(config) {
+        const { id, buttonEl, options, onSelectionChange } = config;
+        const dropdown = document.createElement('div');
+        dropdown.className = 'dropdown';
+        dropdown.id = id;
+
+        options.forEach(option => {
+          const label = document.createElement('label');
+          const checkbox = document.createElement('input');
+          checkbox.type = 'checkbox';
+          checkbox.value = option;
+
+          checkbox.addEventListener('change', () => {
+            const selectedValues = Array.from(dropdown.querySelectorAll('input:checked'))
+              .map(cb => cb.value);
+            onSelectionChange(selectedValues);
+          });
+
+          label.appendChild(checkbox);
+          label.appendChild(document.createTextNode(option));
+          dropdown.appendChild(label);
+        });
+
+        document.body.appendChild(dropdown);
+
+        buttonEl.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.toggleDropdown(dropdown, buttonEl);
+        });
+
+        return dropdown;
+      }
+
+      initPropertyTypeFilter(propertyTypes) {
+        this.initFilter({
+          id: 'property-type-dropdown',
+          buttonEl: this.propType,
+          options: propertyTypes,
+          onSelectionChange: (selected) => {
+            this.selectedPropertyTypes = selected;
+            // Emit event or call callback if needed
+            this.eventBus.emit('propertyTypeFilterChanged', { selected });
+          }
+        });
+      }
+
+      initTechTypeFilter(techTypes) {
+        this.initFilter({
+          id: 'tech-type-dropdown',
+          buttonEl: this.techType,
+          options: techTypes,
+          onSelectionChange: (selected) => {
+            this.selectedTechTypes = selected;
+            // Emit event or call callback if needed
+            this.eventBus.emit('techTypeFilterChanged', { selected });
+          }
+        });
+      }
+
+      toggleDropdown(dropdown, button) {
+        if (this.activeDropdown === dropdown) {
+          this.hideDropdowns();
+        } else {
+          this.hideDropdowns();
+          this.showDropdown(dropdown, button);
+        }
+      }
+
+      showDropdown(dropdown, button) {
+        const rect = button.getBoundingClientRect();
+        dropdown.style.top = `${rect.bottom}px`;
+        dropdown.style.left = `${rect.left}px`;
+        dropdown.classList.add('show');
+        this.activeDropdown = dropdown;
+      }
+
+      hideDropdowns() {
+        document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('show'));
+        this.activeDropdown = null;
+      }
+    }
+
+    // Main function
+    async function initMap() {
+      const eventBus = new EventBus();
+
+      const mapObj = new GMap(eventBus);
+      await mapObj.initialize();
+
+      const ui = new UI(eventBus);
+
+      mapObj.showLoadingOverlay();
+
+      fetch(`https://api.rainplan.com/api:IME/Incentives_and_jurisdictions`)
+        .then(response => response.json())
+        .then(data => {
+          console.log('data', data);
+          ui.addResetMapButton();
+          ui.buildIncentiveFilters();
+          ui.displayIncentives(data);
+        });
+
+      //fetch(`https://api.rainplan.com/vault/1qbvU_T3/vD4h9FslLVwhjjvZMJyGshqeTjI/iCxsuQ../jurisdictions-reduced+copy.geojson`)
+      fetch(`jurisdictions-reduced copy.geojson`)
+        .then(response => response.json())
+        .then(data => {
+          console.log('data', data);
+          mapObj.loadPolygons(data);
+          mapObj.hideLoadingOverlay();
+        }).catch(err => {
+          console.error('Error loading data', err);
+          mapObj.hideLoadingOverlay();
+        });
+
+      eventBus.on('incentiveCardClicked', data => {
+        console.log('eventBus incentiveCardClicked', data);
+        const esriId = data.esriId;
+        mapObj.showPolygonById(esriId);
+      });
+
+      eventBus.on('polygonClicked', data => {
+        console.log('eventBus polygonClicked', data);
+        const { esri_id } = data.polygon;
+
+        fetch(`https://api.rainplan.com/api:IME/jurisdiction_parcels_geojson?esri_id=${esri_id}`)
+          .then(response => response.json())
+          .then(parcelsData => {
+            console.log('parcelsData', parcelsData);
+            // m.loadParcels(parcelsData)
+            mapObj.loadParcels(parcelsData);
+            ui.displayParcels(parcelsData, data.name);
+          });
+      });
+
+      eventBus.on('resetMapClicked', () => {
+        console.log('eventBus resetMapClicked');
+        mapObj.hideAllPolygons();
+        mapObj.markers.forEach(marker => marker.setMap(null));
+
+        mapObj.getMap().setZoom(4);
+        mapObj.getMap().setCenter(center);
+
+        ui.rightSidebar.style.display = 'none';
+        ui.rightToggleButton.style.display = 'none';
+
+      });
+
+      eventBus.on('autocompleteChanged', polygons => {
+        console.log('polygons', polygons);
+      })
+
+
+      //     fetch(`https://api.rainplan.com/api:IME/jurisdiction_parcels_geojson?esri_id=${esri_id}`)
+      //       .then(response => response.json())
+      //       .then(parcelsData => {
+      //         console.log('parcelsData', parcelsData);
+      //         // m.loadParcels(parcelsData)
+      //         mapObj.loadParcels(parcelsData);
+      //         ui.displayParcels(parcelsData, data.name);
+      //       });
+      //   });
+
+
+      // fetch("https://api.rainplan.com/vault/1qbvU_T3/vD4h9FslLVwhjjvZMJyGshqeTjI/iCxsuQ../jurisdictions-reduced+copy.geojson")
+      //     .then(data => data.json())
+      //     .then(json => console.log('data', json));
+
+      //   ui.initPropertyTypeFilter(['Commercial', 'Residential', 'Other']);
+      //   ui.initTechTypeFilter(['Rain Barrel', 'Rain Garden', 'Cistern', 'Green Roof', 'Turf Replacement', 'Other']);
+
+      //   eventBus.on('polygonClicked', data => {
+      //     console.log('eventBus polygonClicked', data);
+      //     const { esri_id } = data.polygon;
+      //     //load new data
+      //     fetch(`https://api.rainplan.com/api:IME/incentive_by_esri_id?esri_id=${esri_id}`)
+      //       .then(response => response.json())
+      //       .then(incentives => {
+      //         console.log('incentives', incentives);
+      //         ui.displayIncentives(incentives);
+      //       });
+
+      //     fetch(`https://api.rainplan.com/api:IME/jurisdiction_parcels_geojson?esri_id=${esri_id}`)
+      //       .then(response => response.json())
+      //       .then(parcelsData => {
+      //         console.log('parcelsData', parcelsData);
+      //         // m.loadParcels(parcelsData)
+      //         mapObj.loadParcels(parcelsData);
+      //         ui.displayParcels(parcelsData, data.name);
+      //       });
+      //   });
+
+      eventBus.on('parcelCardClicked', data => {
+        console.log('eventBus parcelCardClicked', data);
+        eventBus.emit('markerClicked', { parcelId: data.parcelId });
+        mapObj.highlightMarkerById(data.parcelId);
+      });
+
+      eventBus.on('markerClicked', data => {
+        console.log('eventBus markerClicked', data);
+        ui.highlightParcelCard(data.parcelId);
+      });
+
+      eventBus.on('filterParcels', data => {
+        console.log('eventBus filterParcels', data);
+        mapObj.filterParcels(data.activeFilters, data.searchTerm);
+      });
+
+      eventBus.on('viewportFilterToggled', data => {
+        mapObj.setViewportFilter(data.enabled);
+      });
+
+      eventBus.on('viewportFiltered', data => {
+        // Optionally update UI to show only visible parcels
+        const cards = document.querySelectorAll('.parcel-card');
+        cards.forEach(card => {
+          const parcelId = parseInt(card.dataset.parcelId);
+          card.style.display = data.visibleParcels.includes(parcelId) ? 'block' : 'none';
+        });
+      });
+
+      //   eventBus.on('propertyTypeFilterChanged', data => {
+      //     console.log('eventBus propertyTypeFilterChanged', ui.selectedPropertyTypes);
+      //   });
+      //   eventBus.on('techTypeFilterChanged', data => {
+      //     console.log('eventBus techTypeFilterChanged', ui.selectedTechTypes);
+      //   });
+
+    }
+
+  </script>
+
+</html>
+</body>
