@@ -523,12 +523,15 @@
                     zoom: zoom,
                     center: center,
                     mapId: '8f348c2f6c51a2e',
+                    gestureHandling: "greedy"
                 });
 
                 // Initialize deck.gl overlay with explicit rendering parameters
                 this.deckOverlay = new deck.GoogleMapsOverlay({
                     layers: [],
-                    style: { zIndex: 10000 }
+                    style: {
+                        zIndex: 10000,
+                    }
                 });
                 this.deckOverlay.setMap(this.map);
 
@@ -728,7 +731,6 @@
 
             loadParcels(parcelsData, polygonId) {
 
-
                 // Build data for deck.gl markers
                 const markerData = parcelsData.feature_parcels.features.map(feature => ({
                     position: [feature.geometry.coordinates[0], feature.geometry.coordinates[1]],
@@ -742,6 +744,7 @@
                         createScatterplotLayer('markers-layer', markerData, {
                             pickable: true,
                             onClick: info => {
+                                console.log('CLICK',);
                                 if (info.object) {
                                     console.log('DeckGL Marker clicked:', info.object.parcelId);
                                 }
@@ -763,20 +766,21 @@
             }
 
             getMarkersMatchingFilters(activeFilters, searchTerm) {
-                return this.markers.filter(marker => {
-                    const parcelType = marker.get('parcelType');
-                    const parcelName = marker.getTitle().toLowerCase();
+                return this.deckMarkers.filter(marker => {
+                    const parcelType = marker.parcelType;
+                    const parcelName = (marker.name || '').toLowerCase();
                     return activeFilters.includes(parcelType) && parcelName.includes(searchTerm);
                 });
             }
 
             getMarkersInViewport() {
                 const bounds = this.map.getBounds();
-                if (!bounds || !this.viewportEnabled) return this.markers;
+                if (!bounds || !this.viewportEnabled) return this.deckMarkers;
 
-                return this.markers.filter(marker => {
-                    const position = marker.getPosition();
-                    return bounds.contains(position);
+                return this.deckMarkers.filter(marker => {
+                    const [lng, lat] = marker.position;
+                    const latLng = new google.maps.LatLng(lat, lng);
+                    return bounds.contains(latLng);
                 });
             }
 
@@ -789,34 +793,23 @@
                 const viewportMarkers = this.getMarkersInViewport();
 
                 // Create sets for efficient look-up
-                const filteredSet = new Set(filteredMarkers);
-                const viewportSet = new Set(viewportMarkers);
+                const filteredSet = new Set(filteredMarkers.map(m => m.parcelId));
+                const viewportSet = new Set(viewportMarkers.map(m => m.parcelId));
 
-                // Update visibility of each marker
-                this.markers.forEach(marker => {
-                    const isVisible = filteredSet.has(marker) && viewportSet.has(marker);
-                    marker.setVisible(isVisible);
+                // Update marker visibility
+                this.deckMarkers.forEach(marker => {
+                    marker.visible = filteredSet.has(marker.parcelId) && viewportSet.has(marker.parcelId);
                 });
+
+                // Update deck.gl layer with filtered markers
+                this.updateDeckOverlay(this.deckMarkers.filter(m => m.visible));
 
                 // Collect visible parcel IDs
-                const visibleParcels = this.markers
-                    .filter(m => m.getVisible())
-                    .map(m => m.get('parcelId'));
+                const visibleParcels = this.deckMarkers
+                    .filter(m => m.visible)
+                    .map(m => m.parcelId);
 
                 this.eventBus.emit('viewportFiltered', { visibleParcels });
-            }
-
-            filterParcels(activeFilters, searchTerm) {
-                this.filterParcelsValues = activeFilters;
-                this.searchTerm = searchTerm;
-                this.applyFilters();
-
-                const filteredData = this.deckMarkers.filter(d => {
-                    const matchType = activeFilters.includes(d.parcelType);
-                    const matchName = (d.name || '').toLowerCase().includes(searchTerm);
-                    return matchType && matchName;
-                });
-                this.updateDeckOverlay(filteredData);
             }
 
             filterParcelsByViewport() {
@@ -829,10 +822,10 @@
             }
 
             resetMarkers() {
-                if (this.activeMarker) {
-                    this.activeMarker.setIcon(this.getMarkerIcon(this.activeMarker.get('parcelType')));
-                    this.activeMarker = null;
-                }
+                this.deckMarkers.forEach(marker => {
+                    marker.highlighted = false;
+                });
+                this.updateDeckOverlay();
             }
 
             getMarkerIcon(type) {
@@ -873,19 +866,61 @@
             }
 
             updateDeckOverlay(data) {
+                // Sort markers to ensure highlighted ones are rendered last
+                const sortedData = [...(data || this.deckMarkers)].sort((a, b) => {
+                    if (a.highlighted && !b.highlighted) return 1;  // Non-highlighted first
+                    if (!a.highlighted && b.highlighted) return -1; // Highlighted last
+                    return 0;
+                });
+
                 this.deckOverlay.setProps({
                     layers: [
-                        createScatterplotLayer('parcel-layer', data || this.deckMarkers)
+                        createScatterplotLayer('parcel-layer', sortedData, {
+                            pickable: true,
+                            onClick: (info, event) => {
+
+                                console.log('MARKER CLICK ',);
+                                if (info.object) {
+                                    this.eventBus.emit('markerClicked', { parcelId: info.object.parcelId });
+                                }
+                            }
+                        })
                     ]
                 });
             }
 
             highlightMarkerById(parcelId) {
-                this.deckMarkers.forEach(m => {
-                    m.highlighted = (m.parcelId == parcelId);
-                });
-                this.updateDeckOverlay();
+                const marker = this.deckMarkers.find(m => m.parcelId == parcelId);
+                if (marker) {
+                    // Reset all markers' highlight state
+                    this.deckMarkers.forEach(m => {
+                        m.highlighted = (m.parcelId == parcelId);
+                    });
+
+                    // Center map on the highlighted marker
+                    this.centerOnMarker(marker);
+
+                    // Update the deck overlay without resetting filters
+                    this.updateDeckOverlay(this.deckMarkers.filter(m => m.visible));
+                }
             }
+
+            centerOnMarker(marker) {
+                const [lng, lat] = marker.position;
+                this.map.panTo({ lat, lng });
+                //this.map.setZoom(17); // Adjust zoom level as needed
+                //this.map.panTo(marker.getPosition());
+            }
+
+            filterParcels(activeFilters, searchTerm) {
+                // Store the filter values for use in other methods
+                this.filterParcelsValues = activeFilters;
+                this.searchTerm = searchTerm?.toLowerCase() || '';
+
+                // Apply the filters
+                this.applyFilters();
+            }
+
         }
 
         // UI class
@@ -1330,7 +1365,9 @@
                 mapObj.showPolygonById(esriId);
             });
 
+            let selectedPolygon;
             eventBus.on('polygonClicked', data => {
+
                 console.log('eventBus polygonClicked', data);
                 const { esri_id } = data.polygon;
 
@@ -1339,14 +1376,17 @@
                 //     console.log('Polygon already selected');
                 //     return;
                 // }
+                if (selectedPolygon !== esri_id) {
+                    fetch(`https://api.rainplan.com/api:IME/jurisdiction_parcels_geojson?esri_id=${esri_id}`)
+                        .then(response => response.json())
+                        .then(parcelsData => {
+                            console.log('parcelsData LOAD', parcelsData);
+                            mapObj.loadParcels(parcelsData, esri_id);
+                            ui.displayParcels(parcelsData, data.name);
+                        });
 
-                fetch(`https://api.rainplan.com/api:IME/jurisdiction_parcels_geojson?esri_id=${esri_id}`)
-                    .then(response => response.json())
-                    .then(parcelsData => {
-                        console.log('parcelsData LOAD', parcelsData);
-                        mapObj.loadParcels(parcelsData, esri_id);
-                        ui.displayParcels(parcelsData, data.name);
-                    });
+                    selectedPolygon = esri_id
+                }
             });
 
             eventBus.on('resetMapClicked', () => {
@@ -1365,46 +1405,6 @@
             eventBus.on('autocompleteChanged', polygons => {
                 console.log('polygons', polygons);
             })
-
-
-            //     fetch(`https://api.rainplan.com/api:IME/jurisdiction_parcels_geojson?esri_id=${esri_id}`)
-            //       .then(response => response.json())
-            //       .then(parcelsData => {
-            //         console.log('parcelsData', parcelsData);
-            //         // m.loadParcels(parcelsData)
-            //         mapObj.loadParcels(parcelsData);
-            //         ui.displayParcels(parcelsData, data.name);
-            //       });
-            //   });
-
-
-            // fetch("https://api.rainplan.com/vault/1qbvU_T3/vD4h9FslLVwhjjvZMJyGshqeTjI/iCxsuQ../jurisdictions-reduced+copy.geojson")
-            //     .then(data => data.json())
-            //     .then(json => console.log('data', json));
-
-            //   ui.initPropertyTypeFilter(['Commercial', 'Residential', 'Other']);
-            //   ui.initTechTypeFilter(['Rain Barrel', 'Rain Garden', 'Cistern', 'Green Roof', 'Turf Replacement', 'Other']);
-
-            //   eventBus.on('polygonClicked', data => {
-            //     console.log('eventBus polygonClicked', data);
-            //     const { esri_id } = data.polygon;
-            //     //load new data
-            //     fetch(`https://api.rainplan.com/api:IME/incentive_by_esri_id?esri_id=${esri_id}`)
-            //       .then(response => response.json())
-            //       .then(incentives => {
-            //         console.log('incentives', incentives);
-            //         ui.displayIncentives(incentives);
-            //       });
-
-            //     fetch(`https://api.rainplan.com/api:IME/jurisdiction_parcels_geojson?esri_id=${esri_id}`)
-            //       .then(response => response.json())
-            //       .then(parcelsData => {
-            //         console.log('parcelsData', parcelsData);
-            //         // m.loadParcels(parcelsData)
-            //         mapObj.loadParcels(parcelsData);
-            //         ui.displayParcels(parcelsData, data.name);
-            //       });
-            //   });
 
             eventBus.on('parcelCardClicked', data => {
                 console.log('eventBus parcelCardClicked', data);
@@ -1435,12 +1435,6 @@
                 });
             });
 
-            //   eventBus.on('propertyTypeFilterChanged', data => {
-            //     console.log('eventBus propertyTypeFilterChanged', ui.selectedPropertyTypes);
-            //   });
-            //   eventBus.on('techTypeFilterChanged', data => {
-            //     console.log('eventBus techTypeFilterChanged', ui.selectedTechTypes);
-            //   });
 
         }
 
@@ -1461,18 +1455,40 @@
                     }
                 },
                 stroked: true,
-                getLineColor: [255, 255, 255], // White stroke
-                getLineWidth: d => d.highlighted ? 4 : 3, // Thicker stroke
+                getLineColor: [255, 255, 255],
+                getLineWidth: d => d.highlighted ? 4 : 2,
                 lineWidthUnits: 'pixels',
                 lineWidthScale: 1,
                 pickable: !!options.pickable,
-                onClick: options.onClick || null,
+                onClick: (info, event) => {
+
+                    console.log('info,event', info, event);
+                    event.preventDefault()
+
+                    if (info.object) {
+                        // Stop both propagation and default behavior
+                        event.stopPropagation();
+                        event.preventDefault();
+
+                        // Add your custom click handling here
+                        console.log('Marker clicked:', info.object.parcelId);
+                    }
+
+                    // Call custom onClick handler if provided
+                    if (options.onClick) {
+                        options.onClick(info, event);
+                    }
+                },
+                getElevation: d => d.highlighted ? 1 : 0,
+                elevationScale: 1,
                 updateTriggers: {
-                    getFillColor: [data]
+                    getFillColor: [data],
+                    getElevation: [data],
+                    getRadius: [data],
+                    getLineWidth: [data]
                 }
             });
         }
-
     </script>
 
 </html>
