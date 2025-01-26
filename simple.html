@@ -618,46 +618,53 @@
             }
 
             loadPolygons(data) {
-                data.features.forEach(feature => {
 
-                    // For MultiPolygon, create polygon paths for each ring
-                    const paths = feature.geometry.type === "MultiPolygon"
-                        // Get the outer ring of each polygon
-                        ? feature.geometry.coordinates.map(polygonRing => this.coordsToLatLng(polygonRing[0]))
-                        : this.coordsToLatLng(feature.geometry.coordinates[0])
+                console.log('data.features', data.features);
 
-                    const polygon = new google.maps.Polygon({
-                        paths: paths,
-                        map: this.map,
-                        ...this.polygonStyles.default,
-                        visible: false
+                data.features
+                    .sort((a, b) => {
+                        return b.properties.shape_area - a.properties.shape_area;
+                    })
+                    .forEach(feature => {
+
+                        // For MultiPolygon, create polygon paths for each ring
+                        const paths = feature.geometry.type === "MultiPolygon"
+                            // Get the outer ring of each polygon
+                            ? feature.geometry.coordinates.map(polygonRing => this.coordsToLatLng(polygonRing[0]))
+                            : this.coordsToLatLng(feature.geometry.coordinates[0])
+
+                        const polygon = new google.maps.Polygon({
+                            paths: paths,
+                            map: this.map,
+                            ...this.polygonStyles.default,
+                            visible: false
+                        });
+
+                        polygon.id = feature.id;
+                        polygon.esri_id = feature.properties.esri_id;
+                        polygon.name = feature.properties.name;
+
+                        // Add hover events
+                        polygon.addListener('mouseover', () => {
+                            if (polygon.esri_id !== this.selectedPolygonId) {
+                                polygon.setOptions(this.polygonStyles.hover);
+                            }
+                        });
+
+                        polygon.addListener('mouseout', () => {
+                            if (polygon.esri_id !== this.selectedPolygonId) {
+                                polygon.setOptions(this.polygonStyles.default);
+                            }
+                        });
+
+                        polygon.addListener('click', () => {
+                            console.log('polygon', polygon);
+                            this.handlePolygonClick(polygon)
+
+                        });
+
+                        this.polygons.push(polygon);
                     });
-
-                    polygon.id = feature.id;
-                    polygon.esri_id = feature.properties.esri_id;
-                    polygon.name = feature.properties.name;
-
-                    // Add hover events
-                    polygon.addListener('mouseover', () => {
-                        if (polygon.esri_id !== this.selectedPolygonId) {
-                            polygon.setOptions(this.polygonStyles.hover);
-                        }
-                    });
-
-                    polygon.addListener('mouseout', () => {
-                        if (polygon.esri_id !== this.selectedPolygonId) {
-                            polygon.setOptions(this.polygonStyles.default);
-                        }
-                    });
-
-                    polygon.addListener('click', () => {
-                        console.log('polygon', polygon);
-                        this.handlePolygonClick(polygon)
-
-                    });
-
-                    this.polygons.push(polygon);
-                });
             }
 
             hideAllPolygons() {
@@ -1275,8 +1282,8 @@
                     ui.displayIncentives(data);
                 });
 
-            fetch(`https://api.rainplan.com/vault/1qbvU_T3/vD4h9FslLVwhjjvZMJyGshqeTjI/iCxsuQ../jurisdictions-reduced+copy.geojson`)
-            //fetch(`jurisdictions-reduced copy.geojson`)
+            //fetch(`https://api.rainplan.com/vault/1qbvU_T3/vD4h9FslLVwhjjvZMJyGshqeTjI/iCxsuQ../jurisdictions-reduced+copy.geojson`)
+            fetch(`jurisdictions-reduced copy.geojson`)
                 .then(response => response.json())
                 .then(data => {
                     console.log('data', data);
