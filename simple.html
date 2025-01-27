@@ -397,6 +397,17 @@
             animation: spin 1s linear infinite;
         }
 
+        .pac-input {
+            width: 300px;
+            padding: 10px;
+            margin: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            font-size: 14px;
+            background: white;
+        }
+
         @keyframes spin {
             0% {
                 transform: rotate(0deg);
@@ -417,20 +428,7 @@
 
         <div class="top-container">
             <div class="filters-container">
-                <div id="search-container" style=" width: 300px;">
-                    <input id="pac-input" type="text" placeholder="Search for a location" style="
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-            font-size: 14px;
-            background: white;
-          ">
-                </div>
-                <!-- <div class="button filter" id="">See Searches by type</div>
-                <div class="button filter" id="prop-type">Property Type</div>
-                <div class="button filter" id="tech-type">Technology Type</div> -->
+                <!-- Remove the search container from here -->
             </div>
             <!-- <div class="main button"> Search</div> -->
         </div>
@@ -521,8 +519,12 @@
                     zoom: zoom,
                     center: center,
                     mapId: '8f348c2f6c51a2e',
+                    mapTypeControl: true,
+                    mapTypeControlOptions: {
+                        style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
+                        position: google.maps.ControlPosition.TOP_RIGHT,
+                    },
                 });
-
                 // Add viewport change listener
                 this.map.addListener('idle', () => {
                     if (this.viewportEnabled) {
@@ -551,10 +553,16 @@
             }
 
             initAutocomplete() {
-                const input = document.getElementById('pac-input');
+
+                const input = document.createElement("input");
+                input.id = "pac-input";
+                input.type = "text";
+                input.placeholder = "Search for a location";
+                input.className = 'pac-input';
+
                 const searchBox = new google.maps.places.SearchBox(input);
 
-                //this.map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
+                this.map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
 
                 this.map.addListener('bounds_changed', () => {
                     searchBox.setBounds(this.map.getBounds());
@@ -1283,7 +1291,7 @@
                 });
 
             fetch(`https://api.rainplan.com/vault/1qbvU_T3/vD4h9FslLVwhjjvZMJyGshqeTjI/iCxsuQ../jurisdictions-reduced+copy.geojson`)
-            //fetch(`jurisdictions-reduced copy.geojson`)
+                //fetch(`jurisdictions-reduced copy.geojson`)
                 .then(response => response.json())
                 .then(data => {
                     console.log('data', data);
@@ -1331,46 +1339,6 @@
                 console.log('polygons', polygons);
             })
 
-
-            //     fetch(`https://api.rainplan.com/api:IME/jurisdiction_parcels_geojson?esri_id=${esri_id}`)
-            //       .then(response => response.json())
-            //       .then(parcelsData => {
-            //         console.log('parcelsData', parcelsData);
-            //         // m.loadParcels(parcelsData)
-            //         mapObj.loadParcels(parcelsData);
-            //         ui.displayParcels(parcelsData, data.name);
-            //       });
-            //   });
-
-
-            // fetch("https://api.rainplan.com/vault/1qbvU_T3/vD4h9FslLVwhjjvZMJyGshqeTjI/iCxsuQ../jurisdictions-reduced+copy.geojson")
-            //     .then(data => data.json())
-            //     .then(json => console.log('data', json));
-
-            //   ui.initPropertyTypeFilter(['Commercial', 'Residential', 'Other']);
-            //   ui.initTechTypeFilter(['Rain Barrel', 'Rain Garden', 'Cistern', 'Green Roof', 'Turf Replacement', 'Other']);
-
-            //   eventBus.on('polygonClicked', data => {
-            //     console.log('eventBus polygonClicked', data);
-            //     const { esri_id } = data.polygon;
-            //     //load new data
-            //     fetch(`https://api.rainplan.com/api:IME/incentive_by_esri_id?esri_id=${esri_id}`)
-            //       .then(response => response.json())
-            //       .then(incentives => {
-            //         console.log('incentives', incentives);
-            //         ui.displayIncentives(incentives);
-            //       });
-
-            //     fetch(`https://api.rainplan.com/api:IME/jurisdiction_parcels_geojson?esri_id=${esri_id}`)
-            //       .then(response => response.json())
-            //       .then(parcelsData => {
-            //         console.log('parcelsData', parcelsData);
-            //         // m.loadParcels(parcelsData)
-            //         mapObj.loadParcels(parcelsData);
-            //         ui.displayParcels(parcelsData, data.name);
-            //       });
-            //   });
-
             eventBus.on('parcelCardClicked', data => {
                 console.log('eventBus parcelCardClicked', data);
                 eventBus.emit('markerClicked', { parcelId: data.parcelId });
@@ -1399,13 +1367,6 @@
                     card.style.display = data.visibleParcels.includes(parcelId) ? 'block' : 'none';
                 });
             });
-
-            //   eventBus.on('propertyTypeFilterChanged', data => {
-            //     console.log('eventBus propertyTypeFilterChanged', ui.selectedPropertyTypes);
-            //   });
-            //   eventBus.on('techTypeFilterChanged', data => {
-            //     console.log('eventBus techTypeFilterChanged', ui.selectedTechTypes);
-            //   });
 
         }
 
